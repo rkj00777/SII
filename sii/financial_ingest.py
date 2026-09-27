@@ -199,9 +199,10 @@ class NSEFinancialIngestor:
         if r.status!='OK':return {"status":r.status,"rows":[],"detail":r.detail}
         raw=r.content
         try:
-            if b"<html" not in raw[:5000].lower() and b"ix:nonfraction" not in raw[:5000].lower():
-                rows=parse_xbrl(raw,filing)
-                if rows:return {"status":"OK","rows":rows}
+            # Prefer the namespace-aware recoverable XML/XHTML parser; fall back
+            # to HTML parsing only when the document is not parseable as XHTML.
+            rows=parse_xbrl(raw,filing)
+            if rows:return {"status":"OK","rows":rows}
             rows=self._parse_ixbrl_html(raw,filing)
             if rows:return {"status":"OK","rows":rows}
             soup=BeautifulSoup(raw, "html.parser")
