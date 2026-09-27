@@ -21,6 +21,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r requirements.txt
+      - name: Install Chromium for NSE public filing session
+        run: python -m playwright install --with-deps chromium
       - name: Run SII live blind scan
         env:
           SII_JOB: live
