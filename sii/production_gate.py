@@ -1,3 +1,4 @@
+# historical-refresh gate sync
 """SII production gate: separates operational readiness from empirical validation readiness."""
 import json, os
 from pathlib import Path
