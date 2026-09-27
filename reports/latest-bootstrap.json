@@ -1,7 +1,7 @@
 {
   "job": "bootstrap",
-  "started_at": "2026-09-27T14:29:49.152183",
-  "finished_at": "2026-09-27T14:30:02.561453",
+  "started_at": "2026-09-27T17:45:43.603358",
+  "finished_at": "2026-09-27T17:45:56.999875",
   "universe": {
     "nse_main": 2585,
     "nse_sme": 572,
@@ -15,7 +15,7 @@
   },
   "bse_universe": {
     "status": "OK",
-    "as_of": "2026-09-27T14:30:02.189451",
+    "as_of": "2026-09-27T17:45:56.334742",
     "rows": 0,
     "raw_rows": 2671,
     "source": "TejHQ BSE market-data fallback",
