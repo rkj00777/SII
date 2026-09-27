@@ -174,20 +174,35 @@ def run(top_financial=20, rank_max=500):
     latest=latest.sort_values(["technical_score","rank"],ascending=[False,True])
     candidates=latest.head(max(top_financial,20)).copy()
     ing=NSEFinancialIngestor()
+    from .bse_financial import BSEFinancialIngestor
+    b_ing=BSEFinancialIngestor()
     enriched=[]
     catalog_diagnostics=[]
     for _,row in candidates.iterrows():
         sym=str(row["symbol"])
         try:
-            cat=ing.catalog(sym, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()), page_size=20)
-            filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
-            if filings:
-                filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
-                chosen=filings[0]
-                parsed=ing.parse_document(chosen)
-                metrics=parsed.get("rows",[]) if parsed.get("status")=="OK" else []
-            else: metrics=[]
-        except Exception:
+            if str(row.get("exchange"))=="BSE":
+                code=str(row.get("bse_scrip_code") or row.get("symbol") or "")
+                # BSE security-master code is preferred; if absent, keep the name un-enriched.
+                cat=b_ing.catalog(code, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()))
+                filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
+                if filings:
+                    filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
+                    chosen=filings[0]
+                    parsed=b_ing.parse_document(chosen)
+                    metrics=parsed.get("rows",[]) if parsed.get("status")=="OK" else []
+                else: metrics=[]
+            else:
+                cat=ing.catalog(sym, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()), page_size=20)
+                filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
+                if filings:
+                    filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
+                    chosen=filings[0]
+                    parsed=ing.parse_document(chosen)
+                    metrics=parsed.get("rows",[]) if parsed.get("status")=="OK" else []
+                else: metrics=[]
+        except Exception as ex:
+            catalog_diagnostics.append({"exchange":str(row.get("exchange")),"symbol":sym,"status":"EXCEPTION","detail":f"{type(ex).__name__}: {ex}"})
             metrics=[]
         feat=_financial_features(metrics,float(row["adj_close"]),None)
         shares=feat.get("shares")
