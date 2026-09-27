@@ -171,6 +171,64 @@ class NSEFinancialIngestor:
             return {"status":"OK","rows":list(merged.values()),"raw":data}
         except Exception as ex:
             return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"{plain_error}; NSE browser fallback: {type(ex).__name__}: {ex}"}
+    def _parse_financial_html(self, raw, filing):
+        soup=BeautifulSoup(raw, "html.parser")
+        text_all=soup.get_text(" ",strip=True)
+        starts=re.findall(r"Date of start of reporting period\s+(\d{2}-\d{2}-\d{4})",text_all,re.I)
+        ends=re.findall(r"Date of end of reporting period\s+(\d{2}-\d{2}-\d{4})",text_all,re.I)
+        start=self._parse_date_text(starts[0]) if starts else None
+        end=self._parse_date_text(ends[0]) if ends else None
+        if not end:return []
+        duration=(end-start).days if start and end else 0
+        aliases={
+            "revenue":["revenue from operations"],
+            "pat":["net profit loss for the period from continuing operations","total profit (loss) for period","profit or loss, attributable to owners of parent"],
+            "ebit":["total profit before exceptional items and tax"],
+            "interest":["finance costs"],
+            "depreciation":["depreciation, depletion and amortisation expense","depreciation, depletion and amortisation"],
+            "shares_capital":["paid-up equity share capital"],
+            "face_value":["face value of equity share capital"],
+            "eps":["basic earnings (loss) per share from continuing operations","basic earnings (loss) per share"],
+            "debt_equity":["debt equity ratio"],
+        }
+        rows=[]
+        for tr in soup.find_all("tr"):
+            cells=[c.get_text(" ",strip=True) for c in tr.find_all(["th","td"])]
+            if len(cells)<2: continue
+            label=" ".join(cells[:-1]).strip().lower()
+            for metric,keys in aliases.items():
+                if not any(k in label for k in keys): continue
+                nums=[]
+                for cell in cells[1:]:
+                    for m in re.findall(r"(?<!\w)-?\(?\d[\d,]*(?:\.\d+)?\)?",cell):
+                        z=m.replace(",","").replace("(","-").replace(")","")
+                        try: nums.append(float(z))
+                        except Exception: pass
+                if not nums: continue
+                value=nums[0]
+                rows.append({"metric":metric,"value":value,"unit":"INR_LAKH",
+                             "period_end":end,"period_start":start,"duration_days":duration,
+                             "available_at":filing.get("available_at"),"source_url":filing["xbrl_url"],
+                             "source_type":"NSE_FINANCIAL_RESULTS_HTML","isin":filing.get("isin"),"symbol":filing.get("symbol")})
+                break
+        # Derive EBIT/EBITDA and shares from the disclosed IndAS table.
+        vals={r["metric"]:r["value"] for r in rows}
+        if "ebit" in vals and "interest" in vals:
+            rows.append({"metric":"ebit","value":vals["ebit"],"unit":"INR_LAKH","period_end":end,"period_start":start,"duration_days":duration,
+                         "available_at":filing.get("available_at"),"source_url":filing["xbrl_url"],"source_type":"NSE_FINANCIAL_RESULTS_HTML","isin":filing.get("isin"),"symbol":filing.get("symbol")})
+        if "ebit" in vals and "depreciation" in vals:
+            rows.append({"metric":"ebitda","value":vals["ebit"]+vals["depreciation"],"unit":"INR_LAKH","period_end":end,"period_start":start,"duration_days":duration,
+                         "available_at":filing.get("available_at"),"source_url":filing["xbrl_url"],"source_type":"NSE_FINANCIAL_RESULTS_HTML","isin":filing.get("isin"),"symbol":filing.get("symbol")})
+        if "shares_capital" in vals and "face_value" in vals and vals["face_value"]:
+            rows.append({"metric":"shares","value":vals["shares_capital"]*100000/vals["face_value"],"unit":"SHARES","period_end":end,"period_start":start,"duration_days":duration,
+                         "available_at":filing.get("available_at"),"source_url":filing["xbrl_url"],"source_type":"NSE_FINANCIAL_RESULTS_HTML","isin":filing.get("isin"),"symbol":filing.get("symbol")})
+        return rows
+
+    @staticmethod
+    def _parse_date_text(v):
+        try:return datetime.strptime(v,"%d-%m-%Y")
+        except Exception:return None
+
     def _parse_ixbrl_html(self, raw, filing):
         soup=BeautifulSoup(raw, "html.parser")
         contexts={}
@@ -222,6 +280,8 @@ class NSEFinancialIngestor:
             # Prefer the namespace-aware recoverable XML/XHTML parser; fall back
             # to HTML parsing only when the document is not parseable as XHTML.
             rows=parse_xbrl(raw,filing)
+            if rows:return {"status":"OK","rows":rows}
+            rows=self._parse_financial_html(raw,filing)
             if rows:return {"status":"OK","rows":rows}
             rows=self._parse_ixbrl_html(raw,filing)
             if rows:return {"status":"OK","rows":rows}
