@@ -2,7 +2,7 @@
 This is deliberately separate from fundamental scoring: it measures whether the data
 layer can reproduce +100/+200/+300 outcomes without survivorship leakage.
 """
-from datetime import date
+from datetime import date, timedelta
 from .free_market import _duckdb
 from .falsifier import Outcome
 
@@ -16,6 +16,10 @@ def run(start_year=2019,end_year=2024,rank_max=500,horizon_days=756):
     years=list(range(start_year,end_year+1))
     price_end_year=min(2026,end_year+3); price_years=list(range(start_year,price_end_year+1))
     up=f"{HF}/universe/nse_liquid.parquet"
+    # Exclude decisions whose full forward horizon is not observable in the dataset.
+    # This prevents partial-window winners from contaminating the falsification rate.
+    latest_observable=con.execute(f"SELECT max(date) FROM read_parquet({prices}, union_by_name=true)").fetchone()[0]
+    cutoff=latest_observable - timedelta(days=horizon_days)
     prices="["+",".join(repr(_p('nse','adj',y)) for y in price_years)+"]"
     q=f"""
     WITH u AS (
@@ -23,6 +27,7 @@ def run(start_year=2019,end_year=2024,rank_max=500,horizon_days=756):
       FROM read_parquet('{up}')
       WHERE rank <= {rank_max}
         AND rebalance_date BETWEEN DATE '{start_year}-01-01' AND DATE '{end_year}-12-31'
+        AND rebalance_date <= DATE '{cutoff}'
     ),
     p AS (
       SELECT date, symbol, isin, adj_close
@@ -50,6 +55,7 @@ def run(start_year=2019,end_year=2024,rank_max=500,horizon_days=756):
     ret=df['max_return'].astype(float)
     summary={
       'status':'OK','observations':int(len(df)),'decision_months':int(df['rebalance_date'].nunique()),
+      'observable_cutoff':str(cutoff),
       'universe_rank_max':rank_max,'horizon_days':horizon_days,
       'hit_100':int((ret>=1).sum()),'hit_200':int((ret>=2).sum()),'hit_300':int((ret>=3).sum()),
       'hit_100_rate':float((ret>=1).mean()),'hit_200_rate':float((ret>=2).mean()),'hit_300_rate':float((ret>=3).mean()),
