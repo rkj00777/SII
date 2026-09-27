@@ -5,6 +5,9 @@ on:
     paths:
       - 'sii/historical.py'
       - 'sii/historical_outcomes.py'
+      - 'sii/pit_fundamental_backtest.py'
+      - 'sii/financial_ingest.py'
+      - 'sii/nse_browser.py'
       - '.github/workflows/sii-historical.yml'
   schedule:
     - cron: '30 3 * * 0'
@@ -17,7 +20,7 @@ on:
       end_year:
         description: 'Outcome validation end year'
         required: false
-        default: '2024'
+        default: '2023'
 permissions:
   contents: write
 jobs:
@@ -31,21 +34,35 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r requirements.txt
+      - uses: actions/cache@v4
+        with:
+          path: artifacts/pit_cache
+          key: sii-pit-cache-v1-${{ github.ref_name }}
+          restore-keys: |
+            sii-pit-cache-v1-
+      - name: Install Chromium for NSE filing catalog
+        run: python -m playwright install --with-deps chromium
       - name: Run historical outcome falsification
         env:
           SII_JOB: historical
           SII_START_YEAR: ${{ inputs.start_year || '2019' }}
           SII_END_YEAR: ${{ inputs.end_year || '2024' }}
         run: python -m sii.runner
+      - name: Run PIT fundamental-selection backtest
+        env:
+          SII_START_YEAR: ${{ inputs.start_year || '2019' }}
+          SII_END_YEAR: ${{ inputs.end_year || '2023' }}
+        run: python -m sii.pit_fundamental_backtest
       - name: Run tests
         run: pytest -q
       - name: Publish historical report
         run: |
           mkdir -p reports
           cp artifacts/historical_outcome_report.json reports/latest-historical-outcome.json
+          cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/latest-historical-outcome.json
+          git add reports/latest-historical-outcome.json reports/latest-pit-fundamental-backtest.json
           git diff --cached --quiet || git commit -m "Publish latest historical outcome report [skip ci]"
           git pull --rebase origin main
           git push
@@ -53,5 +70,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sii-historical-outcome-report
-          path: artifacts/historical_outcome_report.json
+          path: artifacts/*report.json
           if-no-files-found: error
