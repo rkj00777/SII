@@ -20,10 +20,10 @@ def run():
     source="BSE official security master"
     if data is None:
         try:
-            import duckdb
+            from .free_market import _duckdb, bse_year
             y=__import__('datetime').date.today().year
-            con=duckdb.connect()
-            path=f"https://huggingface.co/datasets/tejhq/indian-markets/resolve/main/bse/year={y}/bse_{y}.parquet?download=true"
+            con=_duckdb()
+            path=bse_year(y)
             data_rows=con.execute(f"SELECT * FROM read_parquet('{path}') WHERE date=(SELECT max(date) FROM read_parquet('{path}')) AND series IN ('A','B','T')").fetchdf().to_dict('records')
             data={'Table':data_rows}; source='TejHQ BSE market-data fallback'
         except Exception as e:
