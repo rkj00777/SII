@@ -16,11 +16,11 @@ def run(start_year=2019,end_year=2024,rank_max=500,horizon_days=756):
     years=list(range(start_year,end_year+1))
     price_end_year=min(2026,end_year+3); price_years=list(range(start_year,price_end_year+1))
     up=f"{HF}/universe/nse_liquid.parquet"
+    prices="["+",".join(repr(_p('nse','adj',y)) for y in price_years)+"]"
     # Exclude decisions whose full forward horizon is not observable in the dataset.
     # This prevents partial-window winners from contaminating the falsification rate.
     latest_observable=con.execute(f"SELECT max(date) FROM read_parquet({prices}, union_by_name=true)").fetchone()[0]
     cutoff=latest_observable - timedelta(days=horizon_days)
-    prices="["+",".join(repr(_p('nse','adj',y)) for y in price_years)+"]"
     q=f"""
     WITH u AS (
       SELECT rebalance_date, symbol, isin, rank
