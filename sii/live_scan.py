@@ -161,6 +161,7 @@ def run(top_financial=20, rank_max=500):
     candidates=latest.head(max(top_financial,20)).copy()
     ing=NSEFinancialIngestor()
     enriched=[]
+    catalog_diagnostics=[]
     for _,row in candidates.iterrows():
         sym=str(row["symbol"])
         try:
@@ -218,6 +219,7 @@ def run(top_financial=20, rank_max=500):
       "fundamental_enrichment_attempted":int(len(candidates)),
       "fundamental_enrichment_with_metrics":int((out["filing_metric_count"]>0).sum()),
       "fundamental_coverage_on_enrichment":float((out["filing_metric_count"]>0).mean()),
+      "catalog_diagnostics":catalog_diagnostics,
       "selection_rule":"Blind current NSE EQ/BE universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
       "production_mode":True,
       "validation_status":"Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
