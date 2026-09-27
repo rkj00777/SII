@@ -80,7 +80,7 @@ def extract_filing_rows(payload):
         key=(r["xbrl_url"],str(r.get("period_end")))
         if key not in seen:seen.add(key);clean.append(r)
     return clean
-def _local(tag):return tag.rsplit("}",1)[-1]
+def _local(tag):return tag.rsplit("}",1)[-1] if isinstance(tag,str) else ""
 def _contexts(root):
     ctx={}
     for c in root.findall('.//{*}context'):
@@ -107,6 +107,7 @@ def parse_xbrl(xml,filing):
         root=LET.fromstring(xml, parser=parser)
     ctx=_contexts(root);rows=[]
     for fact in root.iter():
+        if not isinstance(fact.tag,str): continue
         metric=_metric_for_tag(fact.tag); value=_num(fact.text)
         if not metric or value is None:continue
         c=ctx.get(fact.attrib.get("contextRef"),{}); period_end=c.get("end") or c.get("instant")
