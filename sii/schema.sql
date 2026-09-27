@@ -1,0 +1,3 @@
+-- PostgreSQL/Supabase deployment reference.
+-- The Python SQLAlchemy models are the canonical executable schema.
+-- This file intentionally contains no demo market data.
