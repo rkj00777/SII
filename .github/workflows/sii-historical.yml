@@ -75,3 +75,5 @@ jobs:
           name: sii-historical-outcome-report
           path: artifacts/*report.json
           if-no-files-found: error
+
+# refreshed 2026-09-27
