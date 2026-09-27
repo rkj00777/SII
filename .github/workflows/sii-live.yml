@@ -1,0 +1,40 @@
+name: SII live blind scan
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['reports/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Run SII live blind scan
+        env:
+          SII_JOB: live
+        run: python -m sii.runner
+      - name: Run tests
+        run: pytest -q
+      - name: Publish live report
+        run: |
+          mkdir -p reports
+          cp artifacts/live_scan_report.json reports/latest-live-scan.json
+          cp artifacts/live_scan_top100.csv reports/latest-live-scan-top100.csv
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/latest-live-scan.json reports/latest-live-scan-top100.csv
+          git diff --cached --quiet || git commit -m "Publish latest SII live scan [skip ci]"
+          git push
+      - name: Upload live report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sii-live-scan-report
+          path: artifacts/live_scan*
+          if-no-files-found: error
