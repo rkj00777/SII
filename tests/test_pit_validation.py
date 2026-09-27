@@ -13,7 +13,7 @@ def test_extract_filing_rows_accepts_nested_xbrl():
 def test_pit_snapshot_excludes_future_revision():
     metrics=[]
     for i,v in enumerate([6,7,8,9]):
-        pe=f"202{3+i}-03-31"
+        pe=f"{2020+i}-03-31"
         metrics.append({"metric":"pat","value":v,"period_end":pe,"duration_days":90,"available_at":"2024-05-10T12:00:00"})
         metrics.append({"metric":"cfo","value":v+1,"period_end":pe,"duration_days":90,"available_at":"2024-05-10T12:00:00"})
     metrics.append({"metric":"pat","value":99,"period_end":"2026-03-31","duration_days":90,"available_at":"2024-08-10T12:00:00"})
