@@ -1,0 +1,26 @@
+name: SII bootstrap data layer
+on:
+  workflow_dispatch:
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Bootstrap universe and free market-data connectivity
+        env:
+          SII_JOB: bootstrap
+        run: python -m sii.bootstrap
+      - name: Run unit tests
+        run: pytest -q
+      - name: Upload bootstrap report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sii-bootstrap-report
+          path: artifacts/
+          if-no-files-found: error
