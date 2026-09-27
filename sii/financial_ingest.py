@@ -118,7 +118,7 @@ class NSEFinancialIngestor:
                 data=json.loads(r.content.decode("utf-8")); rows=extract_filing_rows(data)
                 if rows: return {"status":"OK","rows":rows,"raw":data}
             except Exception as ex:
-            plain_error=f'plain catalog parse: {type(ex).__name__}: {ex}'
+                plain_error=f'plain catalog parse: {type(ex).__name__}: {ex}'
         else:
             plain_error='plain catalog returned no usable XBRL rows'
         try:
