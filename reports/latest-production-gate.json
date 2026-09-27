@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-09-27T18:32:45.151536",
+  "timestamp_utc": "2026-09-27T18:35:18.289948",
   "engine": "SII-v4.0.0-FREE-ONLY",
   "operational_production_ready": true,
   "empirical_selection_validation_ready": false,
@@ -49,7 +49,7 @@
         "symbol": "RAYMOND",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_183761_07082026174219_iXBRL_WEB.html",
         "parse_status": "NO_METRICS",
-        "parse_detail": "No iXBRL facts; bytes=40174; head='<!DOCTYPE html PUBLIC \"-//W3C//DtdXHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">  <head>     <meta http-equiv=\"content-type\" content'; contexts=0; nonfraction=0; sample=[]"
+        "parse_detail": "No iXBRL facts; bytes=41189; head='<!DOCTYPE html PUBLIC \"-//W3C//DtdXHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">  <head>     <meta http-equiv=\"content-type\" content'; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
@@ -112,7 +112,7 @@
         "symbol": "WELCORP",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_177929_24072026174025_iXBRL_WEB.html",
         "parse_status": "NO_METRICS",
-        "parse_detail": "No iXBRL facts; bytes=38325; head='<!DOCTYPE html PUBLIC \"-//W3C//DtdXHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">  <head>     <meta http-equiv=\"content-type\" content'; contexts=0; nonfraction=0; sample=[]"
+        "parse_detail": "No iXBRL facts; bytes=37304; head='<!DOCTYPE html PUBLIC \"-//W3C//DtdXHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">  <head>     <meta http-equiv=\"content-type\" content'; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
