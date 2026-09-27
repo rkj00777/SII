@@ -43,9 +43,24 @@ class NSEAdapter(HttpAdapter):
     def public_pages(self): return [(self.FILINGS_URL,'FINANCIAL_RESULTS'),(self.ACTIONS_URL,'CORPORATE_ACTIONS')]
 
 class BSEAdapter(HttpAdapter):
-    URL='https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=&industry=&segment=Equity&status=Active'
-    def __init__(self): super().__init__('BSE')
-    def security_master(self): return self.get(self.URL)
+    URL='https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w'
+    ANN_URL='https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w'
+    def __init__(self):
+        super().__init__('BSE')
+        self.session.headers.update({
+            'Referer':'https://www.bseindia.com/',
+            'Accept':'application/json, text/plain, */*',
+            'X-Requested-With':'XMLHttpRequest',
+        })
+        self.session.headers.pop('Origin',None)
+    def security_master(self):
+        return self.get(self.URL, params={'Group':'','Scripcode':'','industry':'','segment':'Equity','status':'Active'})
+    def announcements(self,scripcode=None,start=None,end=None,page=1):
+        params={'pageno':page,'strCat':'Result','subcategory':'Financial+Results','strSearch':'P','strType':'C'}
+        if scripcode: params['strScrip']=str(scripcode)
+        if start: params['strPrevDate']=start.strftime('%Y%m%d')
+        if end: params['strToDate']=end.strftime('%Y%m%d')
+        return self.get(self.ANN_URL, params=params)
 
 class TejHQAdapter(HttpAdapter):
     BASE='https://api.tejhq.dev/v1'
