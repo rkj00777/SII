@@ -40,9 +40,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: artifacts/pit_cache
-          key: sii-pit-cache-v1-${{ github.ref_name }}
+          key: sii-pit-cache-v2-${{ github.ref_name }}
           restore-keys: |
-            sii-pit-cache-v1-
+            sii-pit-cache-v2-
       - name: Install Chromium for NSE filing catalog
         run: python -m playwright install --with-deps chromium
       - name: Run historical outcome falsification
@@ -54,7 +54,7 @@ jobs:
       - name: Run PIT fundamental-selection backtest
         env:
           SII_START_YEAR: ${{ inputs.start_year || '2019' }}
-          SII_END_YEAR: ${{ inputs.end_year || '2023' }}
+          SII_END_YEAR: ${{ inputs.end_year || '2024' }}
         run: python -m sii.pit_fundamental_backtest
       - name: Run tests
         run: pytest -q
