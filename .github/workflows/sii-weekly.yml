@@ -1,0 +1,14 @@
+name: SII weekly blind scan
+on:
+  schedule:
+    - cron: '30 15 * * 6'
+  workflow_dispatch:
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r requirements.txt
+      - run: SII_JOB=weekly python -m sii.runner
