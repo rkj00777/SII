@@ -71,7 +71,8 @@ def extract_filing_rows(payload):
             period=next((v for k,v in lower.items() if k in ("periodend","period_end","todate","to_date","quarterend","quarter_end","enddate","end_date")),None)
             if period is None:
                 period=next((v for k,v in lower.items() if "period" in k and "end" in k),None)
-            out.append({"xbrl_url":xbrl,"isin":isin,"symbol":symbol,"period_end":period,"available_at":_availability(d),"raw":d})
+            if isin or symbol or period:
+                out.append({"xbrl_url":xbrl,"isin":isin,"symbol":symbol,"period_end":period,"available_at":_availability(d),"raw":d})
     seen=set();clean=[]
     for r in out:
         key=(r["xbrl_url"],str(r.get("period_end")))
