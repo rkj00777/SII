@@ -10,8 +10,9 @@ class NSEBrowserCatalog:
         self.page.goto("https://www.nseindia.com/companies-listing/corporate-integrated-filing", wait_until="domcontentloaded", timeout=60000)
         self.page.wait_for_timeout(3000)
 
-    def fetch(self,symbol,start,end,page=1,size=20):
-        params={"type":"Integrated Filing- Financials","page":page,"size":size,"index":"equities","symbol":symbol,"from_date":start.strftime("%d-%m-%Y"),"to_date":end.strftime("%d-%m-%Y")}
+    def fetch(self,symbol,start,end,page=1,size=20,issuer=None):
+        params={"type":"Integrated Filing- Financials","page":page,"size":size,"index":"equities","symbol":symbol,"period_ended":"all","from_date":start.strftime("%d-%m-%Y"),"to_date":end.strftime("%d-%m-%Y")}
+        if issuer: params["issuer"]=issuer
         url="https://www.nseindia.com/api/integrated-filing-results?"+urlencode(params)
         data=self.page.evaluate("""async (url) => {
           const r=await fetch(url,{credentials:'include',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json, text/plain, */*'}});
