@@ -50,7 +50,9 @@ def extract_filing_rows(payload):
                 if xbrl: break
         if not xbrl:
             for k,v in lower.items():
-                if isinstance(v,str) and v.startswith("http") and ("xbrl" in v.lower() or v.lower().endswith(".xml")): xbrl=v; break
+                if isinstance(v,str):
+                    u=_normalize_url(v)
+                    if u and ("xbrl" in u.lower() or "ixbrl" in u.lower() or u.lower().endswith(".xml")): xbrl=u; break
         if xbrl:
             isin=next((v for k,v in lower.items() if k in ("isin","sm_isin","isinno")),None); symbol=next((v for k,v in lower.items() if k in ("symbol","sym")),None); period=next((v for k,v in lower.items() if "period" in k and "end" in k),None)
             out.append({"xbrl_url":xbrl,"isin":isin,"symbol":symbol,"period_end":period,"available_at":_availability(d),"raw":d})
@@ -86,7 +88,8 @@ def parse_xbrl(xml,filing):
     for r in rows:ded[(r["metric"],r["period_end"],r["isin"],r["symbol"])]=r
     return list(ded.values())
 class NSEFinancialIngestor:
-    def __init__(self):self.adapter=NSEAdapter()
+    def __init__(self):
+        self.adapter=NSEAdapter()
         self.browser=None
     def catalog(self,symbol=None,start=None,end=None,page_size=100):
         payload={"type":"Integrated Filing- Financials","page":1,"size":page_size,"index":"equities"}
