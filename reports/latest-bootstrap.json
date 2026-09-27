@@ -1,7 +1,7 @@
 {
   "job": "bootstrap",
-  "started_at": "2026-09-27T13:36:04.166158",
-  "finished_at": "2026-09-27T13:36:10.973893",
+  "started_at": "2026-09-27T13:36:50.351964",
+  "finished_at": "2026-09-27T13:36:55.453472",
   "universe": {
     "nse_main": 2585,
     "nse_sme": 572,
