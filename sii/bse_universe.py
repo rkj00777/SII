@@ -13,8 +13,7 @@ def run():
         try:
             from .bse_browser import BSEBrowser
             br=BSEBrowser().security_master()
-            if br.get("status")!="OK": return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":0,"detail":br.get("detail")}
-            data=br.get("raw")
+            if br.get("status")=="OK": data=br.get("raw")
         except Exception as e:
             return {"status":"DATA_UNAVAILABLE","rows":0,"detail":f"BSE browser fallback: {type(e).__name__}: {e}"}
     source="BSE official security master"
