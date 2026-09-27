@@ -4,6 +4,7 @@ from decimal import Decimal
 import xml.etree.ElementTree as ET
 import re
 import html
+import os
 from bs4 import BeautifulSoup
 from .adapters import NSEAdapter
 from urllib.parse import urljoin
@@ -212,6 +213,11 @@ class NSEFinancialIngestor:
         r=self.adapter.get(filing["xbrl_url"],retries=4,delay=1.0)
         if r.status!='OK':return {"status":r.status,"rows":[],"detail":r.detail}
         raw=r.content
+        if os.getenv("SII_DEBUG_FILINGS")=="1":
+            from pathlib import Path
+            p=Path(os.getenv("SII_OUTPUT_DIR","artifacts")); p.mkdir(parents=True,exist_ok=True)
+            safe=re.sub(r"[^A-Za-z0-9_.-]","_",str(filing.get("symbol") or "filing"))
+            (p/f"debug_{safe}.html").write_bytes(raw)
         try:
             # Prefer the namespace-aware recoverable XML/XHTML parser; fall back
             # to HTML parsing only when the document is not parseable as XHTML.
