@@ -22,7 +22,7 @@ permissions:
   contents: write
 jobs:
   falsify:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 330
     steps:
