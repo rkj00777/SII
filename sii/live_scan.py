@@ -129,6 +129,7 @@ def run(top_financial=20, rank_max=500):
     df["date"]=pd.to_datetime(df["date"]); raw["date"]=pd.to_datetime(raw["date"])
     df=df.sort_values(["symbol","date"])
     latest=df.groupby("symbol",as_index=False).tail(1).copy()
+    if "name" not in latest.columns: latest["name"]=latest["symbol"]
     g=df.groupby("symbol",group_keys=False)
     latest["mom_21"]=g["adj_close"].transform(lambda s:s/s.shift(21)-1).groupby(df["symbol"]).tail(1).values
     latest["mom_63"]=g["adj_close"].transform(lambda s:s/s.shift(63)-1).groupby(df["symbol"]).tail(1).values
