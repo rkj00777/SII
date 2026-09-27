@@ -1,7 +1,7 @@
 {
   "job": "bootstrap",
-  "started_at": "2026-09-27T17:45:43.603358",
-  "finished_at": "2026-09-27T17:45:56.999875",
+  "started_at": "2026-09-27T17:53:50.787078",
+  "finished_at": "2026-09-27T17:54:04.537183",
   "universe": {
     "nse_main": 2585,
     "nse_sme": 572,
@@ -15,8 +15,8 @@
   },
   "bse_universe": {
     "status": "OK",
-    "as_of": "2026-09-27T17:45:56.334742",
-    "rows": 0,
+    "as_of": "2026-09-27T17:54:02.215466",
+    "rows": 2671,
     "raw_rows": 2671,
     "source": "TejHQ BSE market-data fallback",
     "dedup_key": "ISIN",
@@ -31,13 +31,18 @@
     "market_rows": 0,
     "financial_rows": 0,
     "universe_coverage": 1.0,
-    "market_coverage": 0.0,
+    "market_coverage": 1.0,
     "fundamental_coverage": 0.0,
-    "evidence_coverage": 0,
-    "pit_coverage": 0,
+    "evidence_coverage": 0.0,
+    "pit_coverage": 0.0,
+    "market_source_coverage": 1.0,
+    "cache_market_coverage": 0.0,
+    "cache_fundamental_coverage": 0.0,
     "critical_errors": 0,
-    "gate_passed": false,
-    "reason": "Coverage/PIT gate not met"
+    "operational_gate_passed": true,
+    "gate_passed": true,
+    "production_alpha_gate": "PENDING_HISTORICAL_PIT_VALIDATION",
+    "reason": "OPERATIONAL_PASS; awaiting empirical PIT selection validation"
   },
   "status": "READY_FOR_HISTORICAL_OUTCOME_VALIDATION"
 }
