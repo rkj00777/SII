@@ -5,6 +5,9 @@ def main():
   from .bootstrap import run_bootstrap;print(run_bootstrap())
  elif mode=='historical':
   from .historical import run_historical_falsification;print(run_historical_falsification(int(os.getenv('SII_START_YEAR','2019')),int(os.getenv('SII_END_YEAR','2026'))))
+ elif mode=='live':
+  from .live_scan import run
+  print(run())
  elif mode=='weekly':
   from .pipeline import run_universe
   from .blind_scan import run_blind_scan
