@@ -1,5 +1,7 @@
 name: SII bootstrap data layer
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 jobs:
   bootstrap:
