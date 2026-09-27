@@ -87,7 +87,7 @@
       "symbol": "WELCORP",
       "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_177929_24072026174025_iXBRL_WEB.html",
       "parse_status": "PARSE_ERROR",
-      "parse_detail": "undefined entity &mdash;: line 300, column 26"
+      "parse_detail": "undefined entity &mdash;: line 302, column 26"
     },
     {
       "exchange": "NSE",

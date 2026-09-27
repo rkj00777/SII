@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-09-27T18:16:50.953624",
+  "timestamp_utc": "2026-09-27T18:19:08.524932",
   "engine": "SII-v4.0.0-FREE-ONLY",
   "operational_production_ready": true,
   "empirical_selection_validation_ready": false,
@@ -112,7 +112,7 @@
         "symbol": "WELCORP",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_177929_24072026174025_iXBRL_WEB.html",
         "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_detail": "undefined entity &mdash;: line 302, column 26"
       },
       {
         "exchange": "NSE",
