@@ -1,1 +1,1 @@
-Final end-to-end validation trigger: 2026-09-27. This file is intentionally harmless and may be removed after workflows complete.
+Final end-to-end validation trigger: 2026-09-27T15:00Z. This file is intentionally harmless and may be removed after workflows complete.
