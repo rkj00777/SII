@@ -159,8 +159,8 @@ def run(top_financial=20, rank_max=500):
     g=df.groupby(["exchange","symbol"],group_keys=False)
     latest["mom_21"]=g["adj_close"].transform(lambda s:s/s.shift(21)-1).groupby([df["exchange"],df["symbol"]]).tail(1).values
     latest["mom_63"]=g["adj_close"].transform(lambda s:s/s.shift(63)-1).groupby([df["exchange"],df["symbol"]]).tail(1).values
-    latest["mom_126"]=g["adj_close"].transform(lambda s:s/s.shift(126)-1).groupby(df["symbol"]).tail(1).values
-    latest["ma_252"]=g["adj_close"].transform(lambda s:s.rolling(252,min_periods=126).mean()).groupby(df["symbol"]).tail(1).values
+    latest["mom_126"]=g["adj_close"].transform(lambda s:s/s.shift(126)-1).groupby([df["exchange"],df["symbol"]]).tail(1).values
+    latest["ma_252"]=g["adj_close"].transform(lambda s:s.rolling(252,min_periods=126).mean()).groupby([df["exchange"],df["symbol"]]).tail(1).values
     latest["trend_252"]=(latest["adj_close"]>latest["ma_252"]).astype(float)*100
     r=raw.sort_values(["exchange","symbol","date"])
     r["turnover_20"]=r.groupby(["exchange","symbol"])["turnover"].transform(lambda s:s.rolling(20,min_periods=10).mean())
