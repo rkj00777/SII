@@ -92,10 +92,8 @@ def _financial_features(metrics, close, shares):
 
 def run(top_financial=20, rank_max=500):
     con=_duckdb()
-    price_paths=[]
-    for y in (2025,2026):
-        price_paths.append(f"{HF}/prices_adjusted/nse_{y}.parquet")
-    raw_paths=[f"{HF}/nse/year={y}/nse_{y}.parquet" for y in (2025,2026)]
+    price_paths=[f"{HF}/prices_adjusted/{ex}_{y}.parquet" for ex in ("nse","bse") for y in (2025,2026)]
+    raw_paths=[f"{HF}/{ex}/year={y}/{ex}_{y}.parquet" for ex in ("nse","bse") for y in (2025,2026)]
     ppaths="["+",".join(repr(x) for x in price_paths)+"]"
     rpaths="["+",".join(repr(x) for x in raw_paths)+"]"
     max_date=con.execute(f"SELECT max(date) FROM read_parquet({ppaths}, union_by_name=true)").fetchone()[0]
@@ -107,10 +105,11 @@ def run(top_financial=20, rank_max=500):
         con.close(); return {"status":"DATA_UNAVAILABLE","reason":"No current NSE raw market data"}
     q=f"""
     WITH raw_u AS (
-      SELECT symbol, any_value(isin) AS isin, any_value(name) AS name
-      FROM read_parquet({rpaths}, union_by_name=true)
-      WHERE date=DATE '{raw_latest}' AND series IN ('EQ','BE')
-      GROUP BY symbol
+      SELECT CASE WHEN source_exchange='NSE' THEN 'NSE' ELSE 'BSE' END AS exchange,
+             symbol, any_value(isin) AS isin, any_value(name) AS name
+      FROM (SELECT 'NSE' AS source_exchange, * FROM read_parquet({rpaths}, union_by_name=true)) z
+      WHERE date=DATE '{raw_latest}' AND series IN ('EQ','BE','A','B','T')
+      GROUP BY 1, symbol
     ),
     pit AS (
       SELECT symbol, min(rank) AS rank
@@ -128,7 +127,7 @@ def run(top_financial=20, rank_max=500):
       WHERE adj_close IS NOT NULL
     ),
     j AS (
-      SELECT p.*,u.rank,u.isin AS u_isin,u.name
+      SELECT p.*,u.rank,u.isin AS u_isin,u.name,u.exchange
       FROM p JOIN u ON p.symbol=u.symbol
     )
     SELECT * FROM j
@@ -140,10 +139,10 @@ def run(top_financial=20, rank_max=500):
         return {"status":"DATA_UNAVAILABLE","reason":"No price rows for PIT universe"}
     df["date"]=pd.to_datetime(df["date"]); raw["date"]=pd.to_datetime(raw["date"])
     df=df.sort_values(["symbol","date"])
-    latest=df.groupby("symbol",as_index=False).tail(1).copy()
+    latest=df.groupby(["exchange","symbol"],as_index=False).tail(1).copy()
     if "name" not in latest.columns: latest["name"]=latest["symbol"]
-    g=df.groupby("symbol",group_keys=False)
-    latest["mom_21"]=g["adj_close"].transform(lambda s:s/s.shift(21)-1).groupby(df["symbol"]).tail(1).values
+    g=df.groupby(["exchange","symbol"],group_keys=False)
+    latest["mom_21"]=g["adj_close"].transform(lambda s:s/s.shift(21)-1).groupby([df["exchange"],df["symbol"]]).tail(1).values
     latest["mom_63"]=g["adj_close"].transform(lambda s:s/s.shift(63)-1).groupby(df["symbol"]).tail(1).values
     latest["mom_126"]=g["adj_close"].transform(lambda s:s/s.shift(126)-1).groupby(df["symbol"]).tail(1).values
     latest["ma_252"]=g["adj_close"].transform(lambda s:s.rolling(252,min_periods=126).mean()).groupby(df["symbol"]).tail(1).values
@@ -209,18 +208,18 @@ def run(top_financial=20, rank_max=500):
     out=out.sort_values(["bucket","sii_score","technical_score"],ascending=[True,False,False])
     # Only names with complete-ish evidence and no hard firewall can be promoted.
     promoted=out[(out["bucket"].isin(["HIGH_PRIORITY","WATCH"])) & (out["evidence_coverage"]>=.80) & (out["firewall"]=="")].head(20)
-    cols=["symbol","name","isin","adj_close","technical_score","sii_score","evidence_coverage","bucket","firewall","pe","pat_yoy","cfo_pat","roic_proxy","debt_equity","rank"]
+    cols=["exchange","symbol","name","isin","adj_close","technical_score","sii_score","evidence_coverage","bucket","firewall","pe","pat_yoy","cfo_pat","roic_proxy","debt_equity","rank"]
     result_rows=[]
     for _,r in promoted.iterrows():
         result_rows.append({k:(None if pd.isna(r.get(k)) else r.get(k)) for k in cols})
     report={
       "status":"OK","engine_version":"SII-v4.0.0-FREE-ONLY","as_of":str(pd.Timestamp(max_date).date()),
-      "pit_liquidity_rebalance_date":str(latest_reb),"market_universe":int(len(latest)),
+      "pit_liquidity_rebalance_date":str(latest_reb),"market_universe":int(len(latest)),"exchange_coverage":{"NSE":int((latest["exchange"]=="NSE").sum()),"BSE":int((latest["exchange"]=="BSE").sum())},
       "fundamental_enrichment_attempted":int(len(candidates)),
       "fundamental_enrichment_with_metrics":int((out["filing_metric_count"]>0).sum()),
       "fundamental_coverage_on_enrichment":float((out["filing_metric_count"]>0).mean()),
       "catalog_diagnostics":catalog_diagnostics,
-      "selection_rule":"Blind current NSE EQ/BE universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
+      "selection_rule":"Blind current NSE EQ/BE plus BSE A/B/T universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
       "production_mode":True,
       "validation_status":"Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
       "promoted":result_rows,
