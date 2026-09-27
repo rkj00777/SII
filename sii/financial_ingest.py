@@ -195,8 +195,14 @@ class NSEFinancialIngestor:
                 if rows:return {"status":"OK","rows":rows}
             rows=self._parse_ixbrl_html(raw,filing)
             if rows:return {"status":"OK","rows":rows}
+            soup=BeautifulSoup(raw, "html.parser")
+            names=[str(t.name).lower() for t in soup.find_all()]
+            context_count=sum(1 for n in names if n.endswith(":context") or n=="context")
+            fact_count=sum(1 for n in names if n.endswith(":nonfraction") or n=="nonfraction")
+            sample=[n for n in names if "fraction" in n or n.endswith(":context")][:20]
             rows=parse_xbrl(raw,filing)
-            return {"status":"OK" if rows else "NO_METRICS","rows":rows,"detail":None if rows else "No recognized NSE XBRL/iXBRL facts"}
+            return {"status":"OK" if rows else "NO_METRICS","rows":rows,
+                    "detail":None if rows else f"No iXBRL facts; contexts={context_count}; nonfraction={fact_count}; sample={sample}"}
         except Exception as e:
             try:
                 rows=self._parse_ixbrl_html(raw,filing)
