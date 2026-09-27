@@ -5,10 +5,18 @@ from .adapters import BSEAdapter
 
 def run():
     r=BSEAdapter().security_master()
-    if r.status!="OK":
-        return {"status":r.status,"rows":0,"detail":r.detail}
-    try:data=json.loads(r.content.decode("utf-8"))
-    except Exception as e:return {"status":"PARSE_ERROR","rows":0,"detail":str(e)}
+    data=None
+    if r.status=="OK":
+        try:data=json.loads(r.content.decode("utf-8"))
+        except Exception:data=None
+    if data is None:
+        try:
+            from .bse_browser import BSEBrowser
+            br=BSEBrowser().security_master()
+            if br.get("status")!="OK": return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":0,"detail":br.get("detail")}
+            data=br.get("raw")
+        except Exception as e:
+            return {"status":"DATA_UNAVAILABLE","rows":0,"detail":f"BSE browser fallback: {type(e).__name__}: {e}"}
     rows=data if isinstance(data,list) else data.get("Table",data.get("data",[]))
     out=[]
     for x in rows:
