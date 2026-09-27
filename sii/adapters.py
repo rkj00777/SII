@@ -12,7 +12,7 @@ class FetchResult:
 class HttpAdapter:
     def __init__(self, source):
         assert_free_only(source); self.source=source; self.session=requests.Session(); self.session.headers.update({'User-Agent':CONFIG.user_agent,'Accept':'*/*','Referer':'https://www.nseindia.com/','X-Requested-With':'XMLHttpRequest','Accept-Language':'en-IN,en;q=0.9'})
-    def get(self,url,retries=4,delay=1.5,params=None):
+    def get(self,url,retries=2,delay=0.75,params=None):
         last=''
         for i in range(retries):
             try:
