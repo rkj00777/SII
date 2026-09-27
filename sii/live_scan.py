@@ -14,6 +14,7 @@ import pandas as pd
 
 from .free_market import _duckdb, HF
 from .financial_ingest import NSEFinancialIngestor
+from .adapters import NSEAdapter
 
 MODULES = [
     "valuation_gap","earnings_acceleration","cash_conversion",
@@ -196,6 +197,17 @@ def run(top_financial=20, rank_max=500):
         bse_codes={}
     enriched=[]
     catalog_diagnostics=[]
+    nse_issuers={}
+    try:
+        for _, records in NSEAdapter().security_master():
+            if isinstance(records, list):
+                for rec in records:
+                    sym=str(rec.get("SYMBOL") or rec.get("Symbol") or rec.get("symbol") or "").strip()
+                    issuer=str(rec.get("NAME OF COMPANY") or rec.get("NAME_OF_COMPANY") or rec.get("Company Name") or rec.get("companyName") or "").strip()
+                    if sym and issuer: nse_issuers[sym]=issuer
+    except Exception:
+        nse_issuers={}
+
     for _,row in candidates.iterrows():
         sym=str(row["symbol"])
         try:
@@ -211,7 +223,9 @@ def run(top_financial=20, rank_max=500):
                     metrics=parsed.get("rows",[]) if parsed.get("status")=="OK" else []
                 else: metrics=[]
             else:
-                cat=ing.catalog(sym, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()), page_size=20, issuer=str(row.get("name") or sym))
+                issuer=nse_issuers.get(sym) or str(row.get("name") or sym)
+                cat=ing.catalog(sym, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()), page_size=20, issuer=issuer)
+                if not cat.get("rows"): catalog_diagnostics.append({"exchange":"NSE","symbol":sym,"issuer":issuer,"catalog_status":cat.get("status"),"detail":cat.get("detail")})
                 filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
                 if filings:
                     filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
