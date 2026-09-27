@@ -64,7 +64,7 @@ def parse_xbrl(xml,filing):
         if not metric or value is None:continue
         c=ctx.get(fact.attrib.get("contextRef"),{}); period_end=c.get("end") or c.get("instant")
         if not period_end:continue
-        rows.append({"metric":metric,"value":value,"unit":fact.attrib.get("unitRef"),"period_end":period_end,"available_at":filing["available_at"],"source_url":filing["xbrl_url"],"source_type":"NSE_XBRL","isin":filing.get("isin"),"symbol":filing.get("symbol")})
+        rows.append({"metric":metric,"value":value,"unit":fact.attrib.get("unitRef"),"period_end":period_end,"period_start":c.get("start"),"duration_days":((c.get("end")-c.get("start")).days if c.get("end") and c.get("start") else 0),"available_at":filing["available_at"],"source_url":filing["xbrl_url"],"source_type":"NSE_XBRL","isin":filing.get("isin"),"symbol":filing.get("symbol")})
     ded={}
     for r in rows:ded[(r["metric"],r["period_end"],r["isin"],r["symbol"])]=r
     return list(ded.values())
