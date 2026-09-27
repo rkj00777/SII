@@ -170,10 +170,9 @@ def run(top_financial=80, rank_max=500):
     out=pd.DataFrame(enriched)
     if out.empty:
         return {"status":"OK","as_of":str(max_date.date()),"universe_size":int(len(latest)),"fundamental_candidates":0,"results":[]}
-    # Cross-sectional fundamental module scoring; each score is percentile-based and directional.
-    out["valuation_gap"]=(100-_pct(out["pe"].replace([float("inf"),-float("inf")],pd.NA).fillna(out["pe"].median()))).clip(0,100)
+    # Cross-sectional fundamental module scoring; each score is percentile-based and directional.\n    for _col in ["pe","pat_yoy","cfo_pat","roic_proxy","debt_equity"]:\n        if _col not in out.columns: out[_col]=pd.NA\n    out["valuation_gap"]=(100-_pct(out["pe"].replace([float("inf"),-float("inf")],pd.NA).fillna(out["pe"].median()))).clip(0,100)
     out["earnings_acceleration"]=_pct(out["pat_yoy"].fillna(-1))
-    out["cash_conversion"]=(_pct(out["cfo_pat"].clip(-2,3)) if "cfo_pat" in out else pd.Series(50,index=out.index))
+    out["cash_conversion"]=(_pct(out["cfo_pat"].clip(-2,3).fillna(-1)) if out["cfo_pat"].notna().any() else pd.Series(50,index=out.index))
     out["reinvestment_roic"]=_pct(out["roic_proxy"].fillna(-1))
     debt_score=(100-_pct(out["debt_equity"].clip(lower=0).fillna(out["debt_equity"].median()))).clip(0,100)
     cash_bonus=_pct(out["cfo_pat"].clip(-2,3).fillna(-1))
