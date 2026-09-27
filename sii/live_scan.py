@@ -90,7 +90,7 @@ def _financial_features(metrics, close, shares):
         out["roic_proxy"]=float(out["ebit_ttm"]/invested)
     return out
 
-def run(top_financial=80, rank_max=500):
+def run(top_financial=20, rank_max=500):
     con=_duckdb()
     price_paths=[]
     for y in (2025,2026):
