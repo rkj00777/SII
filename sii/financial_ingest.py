@@ -45,7 +45,7 @@ def _availability(row):
     for k in ("exchdisstime","exchangeDisseminationTime","sort_date","sortDate","broadcastDateTime","filingDateTime","filedAt"):
         d=_dt(row.get(k))
         if d:return d
-    return datetime.utcnow()
+    return None
 def _walk(obj):
     if isinstance(obj,dict):
         yield obj
