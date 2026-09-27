@@ -49,6 +49,14 @@ class BSEFinancialIngestor:
         rows=[]
         for page in range(1,max_pages+1):
             r=self.adapter.announcements(scripcode,start,end,page)
+        if r.status!="OK":
+            try:
+                from .bse_browser import BSEBrowser
+                r2=BSEBrowser().announcements(scripcode,start,end,page)
+                if r2.get("status")=="OK":
+                    class R: pass
+                    rr=R(); rr.status="OK"; rr.content=json.dumps(r2.get("raw")).encode(); r=rr
+            except Exception: pass
             if r.status!="OK": return {"status":r.status,"rows":rows,"detail":r.detail}
             try:data=__import__("json").loads(r.content.decode("utf-8"))
             except Exception as e:return {"status":"PARSE_ERROR","rows":rows,"detail":str(e)}
