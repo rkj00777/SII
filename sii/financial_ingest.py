@@ -12,6 +12,22 @@ def _normalize_url(v):
     if v.startswith('/'): return 'https://www.nseindia.com'+v
     if v.startswith('http'): return v
     return None
+
+def _find_url(obj):
+    if isinstance(obj,str):
+        return _normalize_url(obj)
+    if isinstance(obj,dict):
+        for k,v in obj.items():
+            u=_normalize_url(v)
+            if u and any(t in u.lower() for t in ('xbrl','ixbrl','.xml')):
+                return u
+            u=_find_url(v)
+            if u: return u
+    if isinstance(obj,list):
+        for v in obj:
+            u=_find_url(v)
+            if u: return u
+    return None
 METRIC_ALIASES={"revenue":["RevenueFromOperations","Revenue","IncomeFromOperations","Turnover"],"pat":["ProfitLoss","ProfitForThePeriod","ProfitAfterTax","NetProfit"],"ebit":["EBIT","EarningsBeforeInterestAndTax","OperatingProfit"],"ebitda":["EBITDA","EarningsBeforeInterestTaxDepreciationAndAmortisation"],"cfo":["CashFlowsFromUsedInOperatingActivities","NetCashGeneratedFromOperatingActivities","CashGeneratedFromOperations"],"capex":["PurchaseOfPropertyPlantAndEquipment","PaymentsToAcquirePropertyPlantAndEquipment","PurchaseOfTangibleAssets"],"debt":["Borrowings","Debt","BorrowingsCurrentAndNonCurrent"],"cash":["CashAndCashEquivalents","CashAndBankBalances","Cash"],"equity":["Equity","EquityAttributableToOwnersOfParent","ShareholdersEquity"],"interest":["FinanceCosts","InterestExpense","FinanceCost"],"shares":["NumberOfSharesOutstanding","EquitySharesOutstanding"],"eps":["BasicEarningsLossPerShare","BasicEarningsPerShare","DilutedEarningsPerShare"]}
 def _num(v):
     try:return None if v in (None,"") else float(Decimal(str(v).replace(",","")))
@@ -42,11 +58,7 @@ def extract_filing_rows(payload):
         lower={str(k).lower():v for k,v in d.items()}; xbrl=None
         for k,v in lower.items():
             if "xbrl" in k:
-                if isinstance(v,str): xbrl=_normalize_url(v)
-                elif isinstance(v,dict):
-                    for vv in v.values():
-                        xbrl=_normalize_url(vv)
-                        if xbrl: break
+                xbrl=_find_url(v)
                 if xbrl: break
         if not xbrl:
             for k,v in lower.items():
@@ -101,17 +113,23 @@ class NSEFinancialIngestor:
             try:
                 data=json.loads(r.content.decode("utf-8")); rows=extract_filing_rows(data)
                 if rows: return {"status":"OK","rows":rows,"raw":data}
-            except Exception: pass
+            except Exception as ex:
+            plain_error=f'plain catalog parse: {type(ex).__name__}: {ex}'
+        else:
+            plain_error='plain catalog returned no usable XBRL rows'
         try:
             if self.browser is None:
                 from .nse_browser import NSEBrowserCatalog
                 self.browser=NSEBrowserCatalog()
             br=self.browser.fetch(symbol,start,end,page=1,size=page_size)
-            if br.get("status")!="OK": return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":br.get("detail")}
+            if br.get("status")!="OK":
+                return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":f"{plain_error}; {br.get('detail')}"}
             data=br.get("raw"); rows=extract_filing_rows(data)
+            if not rows:
+                return {"status":"NO_XBRL_ROWS","rows":[],"detail":f"{plain_error}; browser returned no XBRL rows","raw":data}
             return {"status":"OK","rows":rows,"raw":data}
         except Exception as ex:
-            return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"NSE browser fallback: {type(ex).__name__}: {ex}"}
+            return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"{plain_error}; NSE browser fallback: {type(ex).__name__}: {ex}"}
     def parse_document(self,filing):
         r=self.adapter.get(filing["xbrl_url"])
         if r.status!='OK':return {"status":r.status,"rows":[],"detail":r.detail}
