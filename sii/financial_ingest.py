@@ -200,9 +200,8 @@ class NSEFinancialIngestor:
             context_count=sum(1 for n in names if n.endswith(":context") or n=="context")
             fact_count=sum(1 for n in names if n.endswith(":nonfraction") or n=="nonfraction")
             sample=[n for n in names if "fraction" in n or n.endswith(":context")][:20]
-            rows=parse_xbrl(raw,filing)
-            return {"status":"OK" if rows else "NO_METRICS","rows":rows,
-                    "detail":None if rows else f"No iXBRL facts; contexts={context_count}; nonfraction={fact_count}; sample={sample}"}
+            return {"status":"NO_METRICS","rows":[],
+                    "detail":f"No iXBRL facts; contexts={context_count}; nonfraction={fact_count}; sample={sample}"}
         except Exception as e:
             try:
                 rows=self._parse_ixbrl_html(raw,filing)
