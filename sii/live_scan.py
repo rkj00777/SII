@@ -169,7 +169,7 @@ def run(top_financial=20, rank_max=500):
         time.sleep(.05)
     out=pd.DataFrame(enriched)
     if out.empty:
-        return {"status":"OK","as_of":str(max_date.date()),"universe_size":int(len(latest)),"fundamental_candidates":0,"results":[]}
+        return {"status":"OK","as_of":str(pd.Timestamp(max_date).date()),"universe_size":int(len(latest)),"fundamental_candidates":0,"results":[]}
     # Cross-sectional fundamental module scoring; each score is percentile-based and directional.
     for _col in ["pe","pat_yoy","cfo_pat","roic_proxy","debt_equity"]:
         if _col not in out.columns: out[_col]=pd.NA
