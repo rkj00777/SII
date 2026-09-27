@@ -10,13 +10,14 @@ class BSEBrowser:
         self.page.goto("https://www.bseindia.com/",wait_until="domcontentloaded",timeout=60000)
         self.page.wait_for_timeout(2000)
     def fetch_json(self,url):
-        data=self.page.evaluate("""async (url)=>{
-          const r=await fetch(url,{credentials:'include',headers:{'Accept':'application/json, text/plain, */*','X-Requested-With':'XMLHttpRequest'}});
-          const text=await r.text(); return {status:r.status,text};
-        }""",url)
-        if data["status"]!=200:return {"status":"DATA_UNAVAILABLE","detail":f"BSE browser HTTP {data['status']}"}
-        try:return {"status":"OK","raw":json.loads(data["text"])}
-        except Exception as e:return {"status":"PARSE_ERROR","detail":str(e)}
+        try:
+            resp=self.page.goto(url,wait_until="domcontentloaded",timeout=60000)
+            status=resp.status if resp else 0
+            text=self.page.locator("body").inner_text(timeout=10000)
+            if status!=200:return {"status":"DATA_UNAVAILABLE","detail":f"BSE browser HTTP {status}"}
+            return {"status":"OK","raw":json.loads(text)}
+        except Exception as e:
+            return {"status":"DATA_UNAVAILABLE","detail":f"BSE browser navigation: {type(e).__name__}: {e}"}
     def security_master(self):
         url="https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?"+urlencode({"Group":"","Scripcode":"","industry":"","segment":"Equity","status":"Active"})
         return self.fetch_json(url)
