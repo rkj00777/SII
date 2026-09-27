@@ -8,6 +8,9 @@ on:
       - 'sii/pit_fundamental_backtest.py'
       - 'sii/financial_ingest.py'
       - 'sii/nse_browser.py'
+      - 'sii/bse_financial.py'
+      - 'sii/bse_browser.py'
+      - 'sii/bse_universe.py'
       - '.github/workflows/sii-historical.yml'
   schedule:
     - cron: '30 3 * * 0'
