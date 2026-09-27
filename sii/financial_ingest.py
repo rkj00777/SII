@@ -110,9 +110,10 @@ class NSEFinancialIngestor:
     def __init__(self):
         self.adapter=NSEAdapter()
         self.browser=None
-    def catalog(self,symbol=None,start=None,end=None,page_size=100):
-        payload={"type":"Integrated Filing- Financials","page":1,"size":page_size,"index":"equities"}
+    def catalog(self,symbol=None,start=None,end=None,page_size=100,issuer=None):
+        payload={"type":"Integrated Filing- Financials","page":1,"size":page_size,"index":"equities","period_ended":"all"}
         if symbol: payload["symbol"]=symbol
+        if issuer: payload["issuer"]=issuer
         if start and end: payload["from_date"]=start.strftime("%d-%m-%Y"); payload["to_date"]=end.strftime("%d-%m-%Y")
         r=self.adapter.get("https://www.nseindia.com/api/integrated-filing-results",params=payload)
         if r.status=="OK":
@@ -128,7 +129,7 @@ class NSEFinancialIngestor:
             if self.browser is None:
                 from .nse_browser import NSEBrowserCatalog
                 self.browser=NSEBrowserCatalog()
-            br=self.browser.fetch(symbol,start,end,page=1,size=page_size)
+            br=self.browser.fetch(symbol,start,end,page=1,size=page_size,issuer=issuer)
             if br.get("status")!="OK":
                 return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":f"{plain_error}; {br.get('detail')}"}
             data=br.get("raw"); rows=extract_filing_rows(data)
