@@ -183,7 +183,7 @@ class NSEFinancialIngestor:
         aliases={
             "revenue":["revenue from operations"],
             "pat":["net profit loss for the period from continuing operations","total profit (loss) for period","profit or loss, attributable to owners of parent"],
-            "ebit":["total profit before exceptional items and tax"],
+            "pbt":["total profit before exceptional items and tax"],
             "interest":["finance costs"],
             "depreciation":["depreciation, depletion and amortisation expense","depreciation, depletion and amortisation"],
             "shares_capital":["paid-up equity share capital"],
@@ -213,11 +213,11 @@ class NSEFinancialIngestor:
                 break
         # Derive EBIT/EBITDA and shares from the disclosed IndAS table.
         vals={r["metric"]:r["value"] for r in rows}
-        if "ebit" in vals and "interest" in vals:
-            rows.append({"metric":"ebit","value":vals["ebit"],"unit":"INR_LAKH","period_end":end,"period_start":start,"duration_days":duration,
+        if "pbt" in vals and "interest" in vals:
+            rows.append({"metric":"ebit","value":vals["pbt"]+vals["interest"],"unit":"INR_LAKH","period_end":end,"period_start":start,"duration_days":duration,
                          "available_at":filing.get("available_at"),"source_url":filing["xbrl_url"],"source_type":"NSE_FINANCIAL_RESULTS_HTML","isin":filing.get("isin"),"symbol":filing.get("symbol")})
-        if "ebit" in vals and "depreciation" in vals:
-            rows.append({"metric":"ebitda","value":vals["ebit"]+vals["depreciation"],"unit":"INR_LAKH","period_end":end,"period_start":start,"duration_days":duration,
+        if "pbt" in vals and "interest" in vals and "depreciation" in vals:
+            rows.append({"metric":"ebitda","value":vals["pbt"]+vals["interest"]+vals["depreciation"],"unit":"INR_LAKH","period_end":end,"period_start":start,"duration_days":duration,
                          "available_at":filing.get("available_at"),"source_url":filing["xbrl_url"],"source_type":"NSE_FINANCIAL_RESULTS_HTML","isin":filing.get("isin"),"symbol":filing.get("symbol")})
         if "shares_capital" in vals and "face_value" in vals and vals["face_value"]:
             rows.append({"metric":"shares","value":vals["shares_capital"]*100000/vals["face_value"],"unit":"SHARES","period_end":end,"period_start":start,"duration_days":duration,
