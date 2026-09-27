@@ -43,7 +43,7 @@ def gate_snapshot():
  passed=c['universe_coverage']>=CONFIG.universe_gate and c['market_coverage']>=CONFIG.market_gate and c['fundamental_coverage']>=CONFIG.fundamental_gate and c['evidence_coverage']>=CONFIG.evidence_gate and c['pit_coverage']>=CONFIG.pit_gate and critical==0
  c.update({'critical_errors':critical,'gate_passed':passed,'reason':'PASS' if passed else 'Coverage/PIT gate not met'});s.close();return c
 def score_candidate(isin,modules,evidence,track='B',as_of=None,metric_context=None):
- score,mult,reasons=weighted_score(track,modules,evidence);events=firewall({**(metric_context or {}),'evidence_coverage':evidence});bucket='REJECTED' if firewall_state(events)=='REJECTED' else ('HIGH_PRIORITY' if score>=75 else ('WATCH' if score>=60 else 'CORE'))
+ score,mult=weighted_score(track,modules,evidence); reasons=[k for k,v in modules.items() if v is not None];events=firewall({**(metric_context or {}),'evidence_coverage':evidence});bucket='REJECTED' if firewall_state(events)=='REJECTED' else ('HIGH_PRIORITY' if score>=75 else ('WATCH' if score>=60 else 'CORE'))
  s=session();s.add(ModuleScore(isin=isin,track=track,total_score=score,evidence_multiplier=mult,as_of=as_of or datetime.utcnow()))
  s.add(CandidateState(isin=isin,track=track,bucket=bucket,thesis_state='INTACT' if bucket!='REJECTED' else 'REJECTED',entry_state='NOT_READY',rejection_code=events[0][0] if events else None,score=score,evidence_coverage=evidence,as_of=as_of or datetime.utcnow()))
  for rule,severity,detail in events:s.add(FirewallEvent(isin=isin,rule_id=rule,severity=severity,triggered=True,detail=detail,as_of=as_of or datetime.utcnow()))
