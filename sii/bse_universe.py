@@ -31,10 +31,10 @@ def run():
     rows=data if isinstance(data,list) else data.get("Table",data.get("data",[]))
     out=[]
     for x in rows:
-        isin=str(x.get("ISIN_NUMBER") or x.get("ISIN") or "").strip()
-        code=str(x.get("SCRIP_CD") or x.get("Scripcode") or "").strip()
-        symbol=str(x.get("scrip_id") or x.get("Scrip_Name") or "").strip()
-        name=str(x.get("Issuer_Name") or x.get("Scrip_Name") or "").strip()
+        isin=str(x.get("ISIN_NUMBER") or x.get("ISIN") or x.get("isin") or "").strip()
+        code=str(x.get("SCRIP_CD") or x.get("Scripcode") or x.get("scrip_code") or "").strip()
+        symbol=str(x.get("scrip_id") or x.get("Scrip_Name") or x.get("symbol") or "").strip()
+        name=str(x.get("Issuer_Name") or x.get("Scrip_Name") or x.get("name") or "").strip()
         if len(isin)==12 and isin.startswith("IN") and code:
             out.append({"exchange":"BSE","bse_scrip_code":code,"symbol":symbol,"name":name,"isin":isin,
                         "group":x.get("GROUP"),"industry":x.get("INDUSTRY"),"status":x.get("Status"),
