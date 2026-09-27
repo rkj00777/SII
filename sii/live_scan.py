@@ -175,14 +175,28 @@ def run(top_financial=20, rank_max=500):
     candidates=latest.head(max(top_financial,20)).copy()
     ing=NSEFinancialIngestor()
     from .bse_financial import BSEFinancialIngestor
+    from .adapters import BSEAdapter
     b_ing=BSEFinancialIngestor()
+    bse_codes={}
+    try:
+        import json as _json
+        bm=BSEAdapter().security_master()
+        if bm.status=="OK":
+            bd=_json.loads(bm.content.decode("utf-8"))
+            brows=bd if isinstance(bd,list) else bd.get("Table",[])
+            for bx in brows:
+                bs=str(bx.get("scrip_id") or "").strip()
+                bc=str(bx.get("SCRIP_CD") or "").strip()
+                if bs and bc: bse_codes[bs]=bc
+    except Exception:
+        bse_codes={}
     enriched=[]
     catalog_diagnostics=[]
     for _,row in candidates.iterrows():
         sym=str(row["symbol"])
         try:
             if str(row.get("exchange"))=="BSE":
-                code=str(row.get("bse_scrip_code") or row.get("symbol") or "")
+                code=bse_codes.get(sym,"")
                 # BSE security-master code is preferred; if absent, keep the name un-enriched.
                 cat=b_ing.catalog(code, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()))
                 filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
