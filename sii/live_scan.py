@@ -211,7 +211,7 @@ def run(top_financial=20, rank_max=500):
                     metrics=parsed.get("rows",[]) if parsed.get("status")=="OK" else []
                 else: metrics=[]
             else:
-                cat=ing.catalog(sym, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()), page_size=20)
+                cat=ing.catalog(sym, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()), page_size=20, issuer=str(row.get("name") or sym))
                 filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
                 if filings:
                     filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
