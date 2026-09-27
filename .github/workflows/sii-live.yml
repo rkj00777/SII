@@ -51,3 +51,5 @@ jobs:
           name: sii-live-scan-report
           path: artifacts/*scan*
           if-no-files-found: error
+
+# refreshed 2026-09-27
