@@ -1,5 +1,11 @@
 name: SII historical falsification
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'sii/historical.py'
+      - 'sii/historical_outcomes.py'
+      - '.github/workflows/sii-historical.yml'
   schedule:
     - cron: '30 3 * * 0'
   workflow_dispatch:
