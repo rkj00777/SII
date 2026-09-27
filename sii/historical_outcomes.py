@@ -14,7 +14,7 @@ def _p(ex,kind,y):
 def run(start_year=2019,end_year=2024,rank_max=500,horizon_days=756):
     con=_duckdb()
     years=list(range(start_year,end_year+1))
-    price_years=list(range(start_year,end_year+min(6,2026-start_year)+1))
+    price_end_year=min(2026,end_year+3); price_years=list(range(start_year,price_end_year+1))
     up=f"{HF}/universe/nse_liquid.parquet"
     prices="["+",".join(repr(_p('nse','adj',y)) for y in price_years)+"]"
     q=f"""
