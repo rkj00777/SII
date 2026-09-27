@@ -127,7 +127,13 @@ class NSEFinancialIngestor:
             data=br.get("raw"); rows=extract_filing_rows(data)
             if not rows:
                 return {"status":"NO_XBRL_ROWS","rows":[],"detail":f"{plain_error}; browser returned no XBRL rows","raw":data}
-            return {"status":"OK","rows":rows,"raw":data}
+            try:
+                legacy=self.browser.fetch_legacy(symbol,period="Quarterly")
+                legacy_rows=extract_filing_rows(legacy.get("raw")) if legacy.get("status")=="OK" else []
+            except Exception:
+                legacy_rows=[]
+            merged={ (x["xbrl_url"],str(x.get("period_end"))):x for x in legacy_rows+rows }
+            return {"status":"OK","rows":list(merged.values()),"raw":data}
         except Exception as ex:
             return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"{plain_error}; NSE browser fallback: {type(ex).__name__}: {ex}"}
     def parse_document(self,filing):
