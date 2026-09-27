@@ -1,8 +1,7 @@
 name: SII historical falsification
 on:
-  workflow_run:
-    workflows: ["SII bootstrap data layer"]
-    types: [completed]
+  schedule:
+    - cron: '30 3 * * 0'
   workflow_dispatch:
     inputs:
       start_year:
@@ -17,7 +16,7 @@ permissions:
   contents: write
 jobs:
   falsify:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 330
     steps:
