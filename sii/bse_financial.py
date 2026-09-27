@@ -49,31 +49,39 @@ class BSEFinancialIngestor:
         rows=[]
         for page in range(1,max_pages+1):
             r=self.adapter.announcements(scripcode,start,end,page)
-        if r.status!="OK":
+            if r.status!="OK":
+                try:
+                    from .bse_browser import BSEBrowser
+                    r2=BSEBrowser().announcements(scripcode,start,end,page)
+                    if r2.get("status")=="OK":
+                        class R: pass
+                        rr=R(); rr.status="OK"; rr.content=__import__("json").dumps(r2.get("raw")).encode(); r=rr
+                except Exception:
+                    pass
+            if r.status!="OK":
+                return {"status":r.status,"rows":rows,"detail":getattr(r,"detail","BSE financial-results unavailable")}
             try:
-                from .bse_browser import BSEBrowser
-                r2=BSEBrowser().announcements(scripcode,start,end,page)
-                if r2.get("status")=="OK":
-                    class R: pass
-                    rr=R(); rr.status="OK"; rr.content=json.dumps(r2.get("raw")).encode(); r=rr
-            except Exception: pass
-            if r.status!="OK": return {"status":r.status,"rows":rows,"detail":r.detail}
-            try:data=__import__("json").loads(r.content.decode("utf-8"))
-            except Exception as e:return {"status":"PARSE_ERROR","rows":rows,"detail":str(e)}
+                data=__import__("json").loads(r.content.decode("utf-8"))
+            except Exception as ex:
+                return {"status":"PARSE_ERROR","rows":rows,"detail":str(ex)}
             page_rows=data.get("Table",[]) if isinstance(data,dict) else []
-            if not page_rows: break
+            if not page_rows:
+                break
             for x in page_rows:
                 txt=" ".join(str(x.get(k,"")) for k in ("NEWSSUB","HEADLINE","CATEGORYNAME"))
-                if "result" not in txt.lower() and "financial" not in txt.lower(): continue
+                if "result" not in txt.lower() and "financial" not in txt.lower():
+                    continue
                 news=x.get("NEWSID") or x.get("NewsId")
                 sc=x.get("SCRIP_CD") or x.get("ScripCode") or scripcode
-                if not news: continue
+                if not news:
+                    continue
                 url=f"https://www.bseindia.com/Msource/90D/CorpXbrlGen.aspx?Bsenewid={news}&Scripcode={sc}"
                 rows.append({"scripcode":str(sc),"news_id":str(news),"period_end":x.get("QUARTER_ID") or x.get("EndDate"),
                              "available_at":_dt(x.get("DissemDT") or x.get("DT_TM") or x.get("News_submission_dt")),
                              "xbrl_url":url,"attachment_url":(f"https://www.bseindia.com/xml-data/corpfiling/AttachLive/{x.get('ATTACHMENTNAME')}" if x.get("ATTACHMENTNAME") else None),
                              "raw":x})
-            if len(page_rows)<50: break
+            if len(page_rows)<50:
+                break
         return {"status":"OK","rows":rows}
     def parse_document(self,filing):
         r=self.adapter.get(filing["xbrl_url"])
