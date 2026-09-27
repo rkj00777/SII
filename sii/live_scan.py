@@ -200,7 +200,7 @@ def run(top_financial=20, rank_max=500):
     for _,r in promoted.iterrows():
         result_rows.append({k:(None if pd.isna(r.get(k)) else r.get(k)) for k in cols})
     report={
-      "status":"OK","engine_version":"SII-v4.0.0-FREE-ONLY","as_of":str(max_date.date()),
+      "status":"OK","engine_version":"SII-v4.0.0-FREE-ONLY","as_of":str(pd.Timestamp(max_date).date()),
       "pit_liquidity_rebalance_date":str(latest_reb),"market_universe":int(len(latest)),
       "fundamental_enrichment_attempted":int(len(candidates)),
       "fundamental_enrichment_with_metrics":int((out["filing_metric_count"]>0).sum()),
