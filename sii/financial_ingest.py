@@ -3,6 +3,15 @@ from datetime import datetime
 from decimal import Decimal
 import xml.etree.ElementTree as ET
 from .adapters import NSEAdapter
+from urllib.parse import urljoin
+
+def _normalize_url(v):
+    if not isinstance(v,str): return None
+    v=v.strip()
+    if v.startswith('//'): return 'https:'+v
+    if v.startswith('/'): return 'https://www.nseindia.com'+v
+    if v.startswith('http'): return v
+    return None
 METRIC_ALIASES={"revenue":["RevenueFromOperations","Revenue","IncomeFromOperations","Turnover"],"pat":["ProfitLoss","ProfitForThePeriod","ProfitAfterTax","NetProfit"],"ebit":["EBIT","EarningsBeforeInterestAndTax","OperatingProfit"],"ebitda":["EBITDA","EarningsBeforeInterestTaxDepreciationAndAmortisation"],"cfo":["CashFlowsFromUsedInOperatingActivities","NetCashGeneratedFromOperatingActivities","CashGeneratedFromOperations"],"capex":["PurchaseOfPropertyPlantAndEquipment","PaymentsToAcquirePropertyPlantAndEquipment","PurchaseOfTangibleAssets"],"debt":["Borrowings","Debt","BorrowingsCurrentAndNonCurrent"],"cash":["CashAndCashEquivalents","CashAndBankBalances","Cash"],"equity":["Equity","EquityAttributableToOwnersOfParent","ShareholdersEquity"],"interest":["FinanceCosts","InterestExpense","FinanceCost"],"shares":["NumberOfSharesOutstanding","EquitySharesOutstanding"],"eps":["BasicEarningsLossPerShare","BasicEarningsPerShare","DilutedEarningsPerShare"]}
 def _num(v):
     try:return None if v in (None,"") else float(Decimal(str(v).replace(",","")))
@@ -30,7 +39,15 @@ def _walk(obj):
 def extract_filing_rows(payload):
     out=[]
     for d in _walk(payload):
-        lower={str(k).lower():v for k,v in d.items()}; xbrl=next((v for k,v in lower.items() if "xbrl" in k and isinstance(v,str) and v.startswith("http")),None)
+        lower={str(k).lower():v for k,v in d.items()}; xbrl=None
+        for k,v in lower.items():
+            if "xbrl" in k:
+                if isinstance(v,str): xbrl=_normalize_url(v)
+                elif isinstance(v,dict):
+                    for vv in v.values():
+                        xbrl=_normalize_url(vv)
+                        if xbrl: break
+                if xbrl: break
         if not xbrl:
             for k,v in lower.items():
                 if isinstance(v,str) and v.startswith("http") and ("xbrl" in v.lower() or v.lower().endswith(".xml")): xbrl=v; break
@@ -70,16 +87,28 @@ def parse_xbrl(xml,filing):
     return list(ded.values())
 class NSEFinancialIngestor:
     def __init__(self):self.adapter=NSEAdapter()
+        self.browser=None
     def catalog(self,symbol=None,start=None,end=None,page_size=100):
         payload={"type":"Integrated Filing- Financials","page":1,"size":page_size,"index":"equities"}
-        if symbol:payload["symbol"]=symbol
-        if start and end:payload["from_date"]=start.strftime("%d-%m-%Y");payload["to_date"]=end.strftime("%d-%m-%Y")
+        if symbol: payload["symbol"]=symbol
+        if start and end: payload["from_date"]=start.strftime("%d-%m-%Y"); payload["to_date"]=end.strftime("%d-%m-%Y")
         r=self.adapter.get("https://www.nseindia.com/api/integrated-filing-results",params=payload)
-        if r.status!='OK':return {"status":r.status,"rows":[],"detail":r.detail}
-        import json
-        try:data=json.loads(r.content.decode("utf-8"))
-        except Exception as e:return {"status":"PARSE_ERROR","rows":[],"detail":str(e)}
-        return {"status":"OK","rows":extract_filing_rows(data),"raw":data}
+        if r.status=="OK":
+            import json
+            try:
+                data=json.loads(r.content.decode("utf-8")); rows=extract_filing_rows(data)
+                if rows: return {"status":"OK","rows":rows,"raw":data}
+            except Exception: pass
+        try:
+            if self.browser is None:
+                from .nse_browser import NSEBrowserCatalog
+                self.browser=NSEBrowserCatalog()
+            br=self.browser.fetch(symbol,start,end,page=1,size=page_size)
+            if br.get("status")!="OK": return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":br.get("detail")}
+            data=br.get("raw"); rows=extract_filing_rows(data)
+            return {"status":"OK","rows":rows,"raw":data}
+        except Exception as ex:
+            return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"NSE browser fallback: {type(ex).__name__}: {ex}"}
     def parse_document(self,filing):
         r=self.adapter.get(filing["xbrl_url"])
         if r.status!='OK':return {"status":r.status,"rows":[],"detail":r.detail}
