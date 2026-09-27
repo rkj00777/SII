@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
     paths-ignore: ['reports/**']
+  schedule:
+    - cron: '30 18 * * 1-5'
   workflow_dispatch:
 permissions:
   contents: write
