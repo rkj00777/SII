@@ -24,7 +24,7 @@
       "symbol": "RAYMOND",
       "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_183761_07082026174219_iXBRL_WEB.html",
       "parse_status": "NO_METRICS",
-      "parse_detail": "No iXBRL facts; bytes=41189; head='<!DOCTYPE html PUBLIC \"-//W3C//DtdXHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">  <head>     <meta http-equiv=\"content-type\" content'; contexts=0; nonfraction=0; sample=[]"
+      "parse_detail": "No iXBRL facts; bytes=40174; head='<!DOCTYPE html PUBLIC \"-//W3C//DtdXHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">  <head>     <meta http-equiv=\"content-type\" content'; contexts=0; nonfraction=0; sample=[]"
     },
     {
       "exchange": "NSE",
