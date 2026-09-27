@@ -6,6 +6,9 @@ on:
   schedule:
     - cron: '45 18 * * 1-5'
   workflow_dispatch:
+concurrency:
+  group: sii-live
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
