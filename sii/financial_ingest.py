@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 import xml.etree.ElementTree as ET
 import re
+import html
 from bs4 import BeautifulSoup
 from .adapters import NSEAdapter
 from urllib.parse import urljoin
@@ -95,16 +96,28 @@ def _metric_for_tag(tag):
         for a in aliases:
             if a.lower() in t:return metric
     return None
+def _sanitize_html_entities(xml):
+    if isinstance(xml, bytes):
+        text=xml.decode("utf-8","replace")
+    else:
+        text=str(xml)
+    protected={"amp","lt","gt","quot","apos"}
+    def repl(m):
+        name=m.group(1)
+        if name in protected: return m.group(0)
+        val=html.entities.html5.get(name+";")
+        if val is None: val=html.entities.html5.get(name)
+        return val if val is not None else ""
+    return re.sub(r"&([A-Za-z][A-Za-z0-9]+);", repl, text).encode("utf-8")
+
 def parse_xbrl(xml,filing):
+    clean=_sanitize_html_entities(xml)
     try:
-        root=ET.fromstring(xml)
+        root=ET.fromstring(clean)
     except ET.ParseError:
-        # NSE iXBRL is XHTML and can contain HTML named entities (e.g. &mdash;).
-        # lxml recovery preserves the XBRL namespace/tag structure while tolerating
-        # those presentation-layer entities.
         from lxml import etree as LET
         parser=LET.XMLParser(recover=True, huge_tree=True, resolve_entities=False)
-        root=LET.fromstring(xml, parser=parser)
+        root=LET.fromstring(clean, parser=parser)
     ctx=_contexts(root);rows=[]
     for fact in root.iter():
         if not isinstance(fact.tag,str): continue
