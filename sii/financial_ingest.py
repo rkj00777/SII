@@ -150,15 +150,15 @@ class NSEFinancialIngestor:
     def _parse_ixbrl_html(self, raw, filing):
         soup=BeautifulSoup(raw, "html.parser")
         contexts={}
-        for el in soup.find_all(lambda t: getattr(t, "name", "") and str(t.name).lower().split(":")[-1]=="context"):
+        for el in soup.find_all(re.compile(r"(^|:)context$", re.I)):
             cid=el.get("id")
             if not cid: continue
             def txt(local):
-                node=el.find(lambda t: getattr(t,"name","") and str(t.name).lower().split(":")[-1]==local.lower())
+                node=el.find(re.compile(r"(^|:)"+re.escape(local)+r"$", re.I))
                 return node.get_text(strip=True) if node else None
             contexts[cid]={"instant":_dt(txt("instant")),"start":_dt(txt("startDate")),"end":_dt(txt("endDate"))}
         rows=[]
-        for el in soup.find_all(lambda t: getattr(t, "name", "") and str(t.name).lower().split(":")[-1] in ("nonfraction","nonnumeric")):
+        for el in soup.find_all(re.compile(r"(^|:)non(fraction|numeric)$", re.I)):
             name=el.get("name") or ""
             metric=_metric_for_tag(name)
             if not metric: continue
