@@ -2,6 +2,8 @@
 from datetime import datetime
 from decimal import Decimal
 import xml.etree.ElementTree as ET
+import re
+from bs4 import BeautifulSoup
 from .adapters import NSEAdapter
 from urllib.parse import urljoin
 
@@ -19,7 +21,7 @@ def _find_url(obj):
     if isinstance(obj,dict):
         for k,v in obj.items():
             u=_normalize_url(v)
-            if u and any(t in u.lower() for t in ('xbrl','ixbrl','.xml')):
+            if u and (any(t in u.lower() for t in ('xbrl','ixbrl','.xml')) or '/corporate/ixbrl/' in u.lower()):
                 return u
             u=_find_url(v)
             if u: return u
@@ -42,7 +44,7 @@ def _dt(v):
     try:return datetime.fromisoformat(s).replace(tzinfo=None)
     except:return None
 def _availability(row):
-    for k in ("exchdisstime","exchangeDisseminationTime","sort_date","sortDate","broadcastDateTime","filingDateTime","filedAt"):
+    for k in ("exchdisstime","exchangeDisseminationTime","sort_date","sortDate","broadcastDateTime","broadCastDate","broadcastDate","filingDateTime","filingDate","filedAt","submissionDate","submission_date"):
         d=_dt(row.get(k))
         if d:return d
     return None
@@ -141,8 +143,59 @@ class NSEFinancialIngestor:
             return {"status":"OK","rows":list(merged.values()),"raw":data}
         except Exception as ex:
             return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"{plain_error}; NSE browser fallback: {type(ex).__name__}: {ex}"}
+    def _parse_ixbrl_html(self, raw, filing):
+        soup=BeautifulSoup(raw, "html.parser")
+        contexts={}
+        for el in soup.find_all(lambda t: getattr(t, "name", "") and str(t.name).lower().split(":")[-1]=="context"):
+            cid=el.get("id")
+            if not cid: continue
+            def txt(local):
+                node=el.find(lambda t: getattr(t,"name","") and str(t.name).lower().split(":")[-1]==local.lower())
+                return node.get_text(strip=True) if node else None
+            contexts[cid]={"instant":_dt(txt("instant")),"start":_dt(txt("startDate")),"end":_dt(txt("endDate"))}
+        rows=[]
+        for el in soup.find_all(lambda t: getattr(t, "name", "") and str(t.name).lower().split(":")[-1] in ("nonfraction","nonnumeric")):
+            name=el.get("name") or ""
+            metric=_metric_for_tag(name)
+            if not metric: continue
+            ref=el.get("contextref") or el.get("contextRef")
+            ctx=contexts.get(ref,{})
+            period_end=ctx.get("end") or ctx.get("instant")
+            if not period_end: continue
+            text=re.sub(r"\s+"," ",el.get_text(" ",strip=True)).strip()
+            scale=el.get("scale")
+            try: multiplier=10 ** int(scale or 0)
+            except Exception: multiplier=1
+            sign=el.get("sign") or ""
+            if text in ("","-","—","–","N/A","NA"): continue
+            value=_num(text.replace("(","-").replace(")",""))
+            if value is None: continue
+            value*=multiplier
+            if sign.strip()=="-" and value>0: value=-value
+            rows.append({"metric":metric,"value":value,"unit":el.get("unitref") or el.get("unitRef"),
+                         "period_end":period_end,"period_start":ctx.get("start"),
+                         "duration_days":((ctx.get("end")-ctx.get("start")).days if ctx.get("end") and ctx.get("start") else 0),
+                         "available_at":filing.get("available_at"),"source_url":filing["xbrl_url"],
+                         "source_type":"NSE_IXBRL","isin":filing.get("isin"),"symbol":filing.get("symbol")})
+        ded={}
+        for r in rows: ded[(r["metric"],r["period_end"],r.get("isin"),r.get("symbol"))]=r
+        return list(ded.values())
+
     def parse_document(self,filing):
-        r=self.adapter.get(filing["xbrl_url"])
+        r=self.adapter.get(filing["xbrl_url"],retries=4,delay=1.0)
         if r.status!='OK':return {"status":r.status,"rows":[],"detail":r.detail}
-        try:return {"status":"OK","rows":parse_xbrl(r.content,filing)}
-        except Exception as e:return {"status":"PARSE_ERROR","rows":[],"detail":str(e)}
+        raw=r.content
+        try:
+            if b"<html" not in raw[:5000].lower() and b"ix:nonfraction" not in raw[:5000].lower():
+                rows=parse_xbrl(raw,filing)
+                if rows:return {"status":"OK","rows":rows}
+            rows=self._parse_ixbrl_html(raw,filing)
+            if rows:return {"status":"OK","rows":rows}
+            rows=parse_xbrl(raw,filing)
+            return {"status":"OK" if rows else "NO_METRICS","rows":rows,"detail":None if rows else "No recognized NSE XBRL/iXBRL facts"}
+        except Exception as e:
+            try:
+                rows=self._parse_ixbrl_html(raw,filing)
+                return {"status":"OK" if rows else "PARSE_ERROR","rows":rows,"detail":None if rows else str(e)}
+            except Exception:
+                return {"status":"PARSE_ERROR","rows":[],"detail":str(e)}
