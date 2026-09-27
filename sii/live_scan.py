@@ -218,9 +218,10 @@ def run(top_financial=20, rank_max=500):
                 filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
                 if filings:
                     filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
-                    chosen=filings[0]
-                    parsed=b_ing.parse_document(chosen)
-                    metrics=parsed.get("rows",[]) if parsed.get("status")=="OK" else []
+                    metrics=[]
+                    for chosen in filings[:8]:
+                        parsed=b_ing.parse_document(chosen)
+                        if parsed.get("status")=="OK": metrics.extend(parsed.get("rows",[]))
                 else: metrics=[]
             else:
                 issuer=nse_issuers.get(sym) or str(row.get("name") or sym)
@@ -229,10 +230,11 @@ def run(top_financial=20, rank_max=500):
                 filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
                 if filings:
                     filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
-                    chosen=filings[0]
-                    parsed=ing.parse_document(chosen)
-                    if not parsed.get("rows"): catalog_diagnostics.append({"exchange":"NSE","symbol":sym,"filing_url":chosen.get("xbrl_url"),"parse_status":parsed.get("status"),"parse_detail":parsed.get("detail")})
-                    metrics=parsed.get("rows",[]) if parsed.get("status")=="OK" else []
+                    metrics=[]
+                    for chosen in filings[:8]:
+                        parsed=ing.parse_document(chosen)
+                        if parsed.get("status")=="OK": metrics.extend(parsed.get("rows",[]))
+                    if not metrics: catalog_diagnostics.append({"exchange":"NSE","symbol":sym,"filing_url":filings[0].get("xbrl_url"),"parse_status":"NO_METRICS","parse_detail":"No parsed metrics across recent filings"})
                 else: metrics=[]
         except Exception as ex:
             catalog_diagnostics.append({"exchange":str(row.get("exchange")),"symbol":sym,"status":"EXCEPTION","detail":f"{type(ex).__name__}: {ex}"})
