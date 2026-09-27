@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-09-27T18:19:08.524932",
+  "timestamp_utc": "2026-09-27T18:21:25.272989",
   "engine": "SII-v4.0.0-FREE-ONLY",
   "operational_production_ready": true,
   "empirical_selection_validation_ready": false,
@@ -41,99 +41,99 @@
         "exchange": "NSE",
         "symbol": "TBZ",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_185294_11082026184600_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "RAYMOND",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_183761_07082026174219_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "BODALCHEM",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_182828_05082026185210_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "AHCL",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_180616_30072026165049_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "INDORAMA",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_179960_29072026180610_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "KABRAEXTRU",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_180595_30072026164115_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "STLNETWORK",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_179089_28072026144213_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "MOREPENLAB",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_182123_04082026162007_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "FILATEX",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_180789_30072026184434_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "MANINDS",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_185423_11082026200716_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 302, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "WELCORP",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_177929_24072026174025_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 302, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "ANTELOPUS",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_178777_27072026184927_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "BHAGERIA",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_177050_22072026191845_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       },
       {
         "exchange": "NSE",
         "symbol": "BIRLACABLE",
         "filing_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_INDAS_181611_02082026183005_iXBRL_WEB.html",
-        "parse_status": "PARSE_ERROR",
-        "parse_detail": "undefined entity &mdash;: line 300, column 26"
+        "parse_status": "NO_METRICS",
+        "parse_detail": "No iXBRL facts; contexts=0; nonfraction=0; sample=[]"
       }
     ],
     "selection_rule": "Blind current NSE EQ/BE plus BSE A/B/T universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
