@@ -1,0 +1,31 @@
+{
+  "job": "bootstrap",
+  "started_at": "2026-09-27T13:23:22.731239",
+  "finished_at": "2026-09-27T13:23:39.757575",
+  "universe": {
+    "nse_main": 2585,
+    "nse_sme": 572,
+    "bse_status": "DATA_UNAVAILABLE",
+    "eligible": 571,
+    "excluded": 1,
+    "source_status": {
+      "MAIN": "OK",
+      "SME": "OK"
+    }
+  },
+  "tejhq_current_year_rows": 473981,
+  "gate": {
+    "eligible_universe": 571,
+    "market_rows": 0,
+    "financial_rows": 0,
+    "universe_coverage": 1.0,
+    "market_coverage": 0.0,
+    "fundamental_coverage": 0.0,
+    "evidence_coverage": 0,
+    "pit_coverage": 0,
+    "critical_errors": 0,
+    "gate_passed": false,
+    "reason": "Coverage/PIT gate not met"
+  },
+  "status": "READY_FOR_HISTORICAL_OUTCOME_VALIDATION"
+}
