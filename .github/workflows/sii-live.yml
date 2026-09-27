@@ -26,6 +26,7 @@ jobs:
       - name: Run SII live blind scan
         env:
           SII_JOB: live
+          SII_DEBUG_FILINGS: "1"
         run: python -m sii.runner
       - name: Run tests
         run: pytest -q
