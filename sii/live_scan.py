@@ -93,9 +93,13 @@ def _financial_features(metrics, close, shares):
 def run(top_financial=20, rank_max=500):
     con=_duckdb()
     price_paths=[f"{HF}/prices_adjusted/{ex}_{y}.parquet" for ex in ("nse","bse") for y in (2025,2026)]
-    raw_paths=[f"{HF}/{ex}/year={y}/{ex}_{y}.parquet" for ex in ("nse","bse") for y in (2025,2026)]
+    nse_raw_paths=[f"{HF}/nse/year={y}/nse_{y}.parquet" for y in (2025,2026)]
+    bse_raw_paths=[f"{HF}/bse/year={y}/bse_{y}.parquet" for y in (2025,2026)]
+    raw_paths=nse_raw_paths+bse_raw_paths
     ppaths="["+",".join(repr(x) for x in price_paths)+"]"
     rpaths="["+",".join(repr(x) for x in raw_paths)+"]"
+    npaths="["+",".join(repr(x) for x in nse_raw_paths)+"]"
+    bpaths="["+",".join(repr(x) for x in bse_raw_paths)+"]"
     max_date=con.execute(f"SELECT max(date) FROM read_parquet({ppaths}, union_by_name=true)").fetchone()[0]
     if max_date is None:
         con.close(); return {"status":"DATA_UNAVAILABLE","reason":"No adjusted-price data"}
@@ -107,7 +111,11 @@ def run(top_financial=20, rank_max=500):
     WITH raw_u AS (
       SELECT CASE WHEN source_exchange='NSE' THEN 'NSE' ELSE 'BSE' END AS exchange,
              symbol, any_value(isin) AS isin, any_value(name) AS name
-      FROM (SELECT 'NSE' AS source_exchange, * FROM read_parquet({rpaths}, union_by_name=true)) z
+      FROM (
+        SELECT 'NSE' AS source_exchange, * FROM read_parquet({npaths}, union_by_name=true)
+        UNION ALL
+        SELECT 'BSE' AS source_exchange, * FROM read_parquet({bpaths}, union_by_name=true)
+      ) z
       WHERE date=DATE '{raw_latest}' AND series IN ('EQ','BE','A','B','T')
       GROUP BY 1, symbol
     ),
