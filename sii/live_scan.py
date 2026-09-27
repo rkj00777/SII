@@ -97,6 +97,8 @@ def run(top_financial=20, rank_max=500):
     bse_raw_paths=[f"{HF}/bse/year={y}/bse_{y}.parquet" for y in (2025,2026)]
     raw_paths=nse_raw_paths+bse_raw_paths
     ppaths="["+",".join(repr(x) for x in price_paths)+"]"
+    nppaths="["+",".join(repr(f"{HF}/prices_adjusted/nse_{y}.parquet") for y in (2025,2026))+"]"
+    bppaths="["+",".join(repr(f"{HF}/prices_adjusted/bse_{y}.parquet") for y in (2025,2026))+"]"
     rpaths="["+",".join(repr(x) for x in raw_paths)+"]"
     npaths="["+",".join(repr(x) for x in nse_raw_paths)+"]"
     bpaths="["+",".join(repr(x) for x in bse_raw_paths)+"]"
@@ -130,35 +132,40 @@ def run(top_financial=20, rank_max=500):
       FROM raw_u LEFT JOIN pit USING(symbol)
     ),
     p AS (
-      SELECT date,symbol,isin,adj_close
-      FROM read_parquet({ppaths}, union_by_name=true)
+      SELECT 'NSE' AS exchange,date,symbol,isin,adj_close
+      FROM read_parquet({nppaths}, union_by_name=true)
+      WHERE adj_close IS NOT NULL
+      UNION ALL
+      SELECT 'BSE' AS exchange,date,symbol,isin,adj_close
+      FROM read_parquet({bppaths}, union_by_name=true)
       WHERE adj_close IS NOT NULL
     ),
     j AS (
       SELECT p.*,u.rank,u.isin AS u_isin,u.name,u.exchange
-      FROM p JOIN u ON p.symbol=u.symbol
+      FROM p JOIN u ON p.symbol=u.symbol AND p.exchange=u.exchange
     )
     SELECT * FROM j
     """
     df=con.execute(q).fetchdf()
-    raw=con.execute(f"SELECT date,symbol,turnover FROM read_parquet({rpaths}, union_by_name=true)").fetchdf()
+    raw=con.execute(f"""SELECT 'NSE' AS exchange,date,symbol,turnover FROM read_parquet({npaths}, union_by_name=true)
+                         UNION ALL SELECT 'BSE' AS exchange,date,symbol,turnover FROM read_parquet({bpaths}, union_by_name=true)""").fetchdf()
     con.close()
     if df.empty:
         return {"status":"DATA_UNAVAILABLE","reason":"No price rows for PIT universe"}
     df["date"]=pd.to_datetime(df["date"]); raw["date"]=pd.to_datetime(raw["date"])
-    df=df.sort_values(["symbol","date"])
+    df=df.sort_values(["exchange","symbol","date"])
     latest=df.groupby(["exchange","symbol"],as_index=False).tail(1).copy()
     if "name" not in latest.columns: latest["name"]=latest["symbol"]
     g=df.groupby(["exchange","symbol"],group_keys=False)
     latest["mom_21"]=g["adj_close"].transform(lambda s:s/s.shift(21)-1).groupby([df["exchange"],df["symbol"]]).tail(1).values
-    latest["mom_63"]=g["adj_close"].transform(lambda s:s/s.shift(63)-1).groupby(df["symbol"]).tail(1).values
+    latest["mom_63"]=g["adj_close"].transform(lambda s:s/s.shift(63)-1).groupby([df["exchange"],df["symbol"]]).tail(1).values
     latest["mom_126"]=g["adj_close"].transform(lambda s:s/s.shift(126)-1).groupby(df["symbol"]).tail(1).values
     latest["ma_252"]=g["adj_close"].transform(lambda s:s.rolling(252,min_periods=126).mean()).groupby(df["symbol"]).tail(1).values
     latest["trend_252"]=(latest["adj_close"]>latest["ma_252"]).astype(float)*100
-    r=raw.sort_values(["symbol","date"])
-    r["turnover_20"]=r.groupby("symbol")["turnover"].transform(lambda s:s.rolling(20,min_periods=10).mean())
-    liq=r.groupby("symbol",as_index=False).tail(1)[["symbol","turnover_20"]]
-    latest=latest.merge(liq,on="symbol",how="left")
+    r=raw.sort_values(["exchange","symbol","date"])
+    r["turnover_20"]=r.groupby(["exchange","symbol"])["turnover"].transform(lambda s:s.rolling(20,min_periods=10).mean())
+    liq=r.groupby(["exchange","symbol"],as_index=False).tail(1)[["exchange","symbol","turnover_20"]]
+    latest=latest.merge(liq,on=["exchange","symbol"],how="left")
     latest["s21"]=_pct(latest["mom_21"].fillna(-1))
     latest["s63"]=_pct(latest["mom_63"].fillna(-1))
     latest["s126"]=_pct(latest["mom_126"].fillna(-1))
