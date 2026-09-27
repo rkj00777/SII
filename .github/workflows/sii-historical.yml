@@ -1,0 +1,29 @@
+name: SII historical falsification
+on:
+  workflow_dispatch:
+    inputs:
+      start_year:
+        description: 'PIT validation start year'
+        required: false
+        default: '2019'
+      end_year:
+        description: 'PIT validation end year'
+        required: false
+        default: '2026'
+jobs:
+  falsify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r requirements.txt
+      - name: Run historical falsification
+        env:
+          SII_JOB: historical
+          SII_START_YEAR: ${{ inputs.start_year }}
+          SII_END_YEAR: ${{ inputs.end_year }}
+        run: python -m sii.runner
+      - name: Run tests
+        run: pytest -q
