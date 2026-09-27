@@ -184,10 +184,14 @@ def run(top_financial=20, rank_max=500):
         if bm.status=="OK":
             bd=_json.loads(bm.content.decode("utf-8"))
             brows=bd if isinstance(bd,list) else bd.get("Table",[])
-            for bx in brows:
-                bs=str(bx.get("scrip_id") or "").strip()
-                bc=str(bx.get("SCRIP_CD") or "").strip()
-                if bs and bc: bse_codes[bs]=bc
+        else:
+            from .bse_browser import BSEBrowser
+            brows_raw=BSEBrowser().security_master().get("raw",{})
+            brows=brows_raw if isinstance(brows_raw,list) else brows_raw.get("Table",[])
+        for bx in brows:
+            bs=str(bx.get("scrip_id") or bx.get("Scrip_ID") or "").strip()
+            bc=str(bx.get("SCRIP_CD") or bx.get("ScripCode") or "").strip()
+            if bs and bc: bse_codes[bs]=bc
     except Exception:
         bse_codes={}
     enriched=[]
