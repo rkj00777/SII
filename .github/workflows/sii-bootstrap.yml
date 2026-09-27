@@ -22,6 +22,8 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Install Chromium for public exchange browser fallback
+        run: python -m playwright install --with-deps chromium
       - name: Bootstrap universe and free market-data connectivity
         env:
           SII_JOB: bootstrap
