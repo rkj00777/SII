@@ -9,3 +9,5 @@ pytest>=8.0
 duckdb>=1.0
 pandas>=2.2
 huggingface_hub>=0.24
+
+playwright>=1.55
