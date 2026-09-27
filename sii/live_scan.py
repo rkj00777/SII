@@ -102,13 +102,25 @@ def run(top_financial=20, rank_max=500):
     if max_date is None:
         con.close(); return {"status":"DATA_UNAVAILABLE","reason":"No adjusted-price data"}
     latest_reb=con.execute(f"SELECT max(rebalance_date) FROM read_parquet('{HF}/universe/nse_liquid.parquet') WHERE rebalance_date<=DATE '{max_date}'").fetchone()[0]
-    if latest_reb is None:
-        con.close(); return {"status":"DATA_UNAVAILABLE","reason":"No PIT liquidity universe"}
+    raw_latest=con.execute(f"SELECT max(date) FROM read_parquet({rpaths}, union_by_name=true)").fetchone()[0]
+    if raw_latest is None:
+        con.close(); return {"status":"DATA_UNAVAILABLE","reason":"No current NSE raw market data"}
     q=f"""
-    WITH u AS (
-      SELECT symbol, isin, rank
+    WITH raw_u AS (
+      SELECT symbol, any_value(isin) AS isin, any_value(name) AS name
+      FROM read_parquet({rpaths}, union_by_name=true)
+      WHERE date=DATE '{raw_latest}' AND series IN ('EQ','BE')
+      GROUP BY symbol
+    ),
+    pit AS (
+      SELECT symbol, min(rank) AS rank
       FROM read_parquet('{HF}/universe/nse_liquid.parquet')
-      WHERE rebalance_date=DATE '{latest_reb}' AND rank<={rank_max}
+      WHERE rebalance_date=DATE '{latest_reb}'
+      GROUP BY symbol
+    ),
+    u AS (
+      SELECT raw_u.*, coalesce(pit.rank,9999) AS rank
+      FROM raw_u LEFT JOIN pit USING(symbol)
     ),
     p AS (
       SELECT date,symbol,isin,adj_close
@@ -116,7 +128,7 @@ def run(top_financial=20, rank_max=500):
       WHERE adj_close IS NOT NULL
     ),
     j AS (
-      SELECT p.*,u.rank,u.isin AS u_isin
+      SELECT p.*,u.rank,u.isin AS u_isin,u.name
       FROM p JOIN u ON p.symbol=u.symbol
     )
     SELECT * FROM j
@@ -206,7 +218,7 @@ def run(top_financial=20, rank_max=500):
       "fundamental_enrichment_attempted":int(len(candidates)),
       "fundamental_enrichment_with_metrics":int((out["filing_metric_count"]>0).sum()),
       "fundamental_coverage_on_enrichment":float((out["filing_metric_count"]>0).mean()),
-      "selection_rule":"Blind top-500 PIT liquidity universe; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
+      "selection_rule":"Blind current NSE EQ/BE universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
       "production_mode":True,
       "validation_status":"Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
       "promoted":result_rows,
