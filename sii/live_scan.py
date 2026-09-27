@@ -151,7 +151,7 @@ def run(top_financial=80, rank_max=500):
     for _,row in candidates.iterrows():
         sym=str(row["symbol"])
         try:
-            cat=ing.catalog(sym, datetime.combine(max_date.date()-timedelta(days=220),datetime.min.time()), datetime.combine(max_date.date(),datetime.min.time()), page_size=20)
+            cat=ing.catalog(sym, datetime.combine((pd.Timestamp(max_date).date()-timedelta(days=220)),datetime.min.time()), datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()), page_size=20)
             filings=cat.get("rows",[]) if cat.get("status")=="OK" else []
             if filings:
                 filings=sorted(filings,key=lambda x:(str(x.get("period_end") or ""),str(x.get("available_at") or "")),reverse=True)
@@ -166,7 +166,7 @@ def run(top_financial=80, rank_max=500):
         if shares and not feat.get("market_cap"):
             feat=_financial_features(metrics,float(row["adj_close"]),shares)
         enriched.append({**row.to_dict(),**feat,"filing_metric_count":len(metrics)})
-        time.sleep(.15)
+        time.sleep(.05)
     out=pd.DataFrame(enriched)
     if out.empty:
         return {"status":"OK","as_of":str(max_date.date()),"universe_size":int(len(latest)),"fundamental_candidates":0,"results":[]}
