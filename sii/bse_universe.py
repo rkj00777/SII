@@ -34,8 +34,11 @@ def run():
         code=str(x.get("SCRIP_CD") or x.get("Scripcode") or x.get("scrip_code") or "").strip()
         symbol=str(x.get("scrip_id") or x.get("Scrip_Name") or x.get("symbol") or "").strip()
         name=str(x.get("Issuer_Name") or x.get("Scrip_Name") or x.get("name") or "").strip()
-        if len(isin)==12 and isin.startswith("IN") and code:
-            out.append({"exchange":"BSE","bse_scrip_code":code,"symbol":symbol,"name":name,"isin":isin,
+        if len(isin)==12 and isin.startswith("IN") and (code or symbol):
+            # TejHQ's public BSE market parquet does not always carry the numeric
+            # BSE scrip code. ISIN+symbol is still a valid identity for the universe;
+            # filing joins can enrich the numeric code later from the official master.
+            out.append({"exchange":"BSE","bse_scrip_code":code or None,"symbol":symbol,"name":name,"isin":isin,
                         "group":x.get("GROUP"),"industry":x.get("INDUSTRY"),"status":x.get("Status"),
                         "source_type":"BSE_SECURITY_MASTER","source_url":"https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w"})
     ded={x["isin"]:x for x in out}
