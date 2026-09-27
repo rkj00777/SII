@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-09-27T13:38:49.138641",
+  "timestamp_utc": "2026-09-27T13:51:08.521202",
   "engine": "SII-v4.0.0-FREE-ONLY",
   "operational_production_ready": true,
   "empirical_selection_validation_ready": false,
@@ -31,6 +31,7 @@
     "fundamental_enrichment_attempted": 20,
     "fundamental_enrichment_with_metrics": 0,
     "fundamental_coverage_on_enrichment": 0.0,
+    "catalog_diagnostics": [],
     "selection_rule": "Blind current NSE EQ/BE universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
     "production_mode": true,
     "validation_status": "Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
