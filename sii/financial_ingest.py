@@ -133,14 +133,17 @@ class NSEFinancialIngestor:
             if br.get("status")!="OK":
                 return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":f"{plain_error}; {br.get('detail')}"}
             data=br.get("raw"); rows=extract_filing_rows(data)
-            if not rows:
-                return {"status":"NO_XBRL_ROWS","rows":[],"detail":f"{plain_error}; browser returned no XBRL rows","raw":data}
+            # Always query the legacy financial-results feed as a free fallback.
+            # It still exposes direct XBRL links for many issuers and is useful when
+            # the Integrated Filing feed is blocked or its attachment schema changes.
             try:
                 legacy=self.browser.fetch_legacy(symbol,period="Quarterly")
                 legacy_rows=extract_filing_rows(legacy.get("raw")) if legacy.get("status")=="OK" else []
             except Exception:
                 legacy_rows=[]
             merged={ (x["xbrl_url"],str(x.get("period_end"))):x for x in legacy_rows+rows }
+            if not merged:
+                return {"status":"NO_XBRL_ROWS","rows":[],"detail":f"{plain_error}; browser integrated+legacy returned no XBRL rows","raw":data}
             return {"status":"OK","rows":list(merged.values()),"raw":data}
         except Exception as ex:
             return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"{plain_error}; NSE browser fallback: {type(ex).__name__}: {ex}"}
