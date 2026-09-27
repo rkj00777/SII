@@ -96,7 +96,16 @@ def _metric_for_tag(tag):
             if a.lower() in t:return metric
     return None
 def parse_xbrl(xml,filing):
-    root=ET.fromstring(xml);ctx=_contexts(root);rows=[]
+    try:
+        root=ET.fromstring(xml)
+    except ET.ParseError:
+        # NSE iXBRL is XHTML and can contain HTML named entities (e.g. &mdash;).
+        # lxml recovery preserves the XBRL namespace/tag structure while tolerating
+        # those presentation-layer entities.
+        from lxml import etree as LET
+        parser=LET.XMLParser(recover=True, huge_tree=True, resolve_entities=False)
+        root=LET.fromstring(xml, parser=parser)
+    ctx=_contexts(root);rows=[]
     for fact in root.iter():
         metric=_metric_for_tag(fact.tag); value=_num(fact.text)
         if not metric or value is None:continue
