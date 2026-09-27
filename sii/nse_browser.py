@@ -22,6 +22,18 @@ class NSEBrowserCatalog:
         try: return {"status":"OK","raw":json.loads(data["text"])}
         except Exception as e: return {"status":"PARSE_ERROR","detail":str(e)}
 
+    def fetch_legacy(self,symbol,period="Quarterly"):
+        params={"index":"equities","period":period}
+        if symbol: params["symbol"]=symbol
+        url="https://www.nseindia.com/api/corporates-financial-results?"+urlencode(params)
+        data=self.page.evaluate("""async (url) => {
+          const r=await fetch(url,{credentials:'include',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json, text/plain, */*'}});
+          const text=await r.text(); return {status:r.status,text};
+        }""",url)
+        if data["status"]!=200: return {"status":"DATA_UNAVAILABLE","detail":f"legacy browser HTTP {data['status']}"}
+        try:return {"status":"OK","raw":json.loads(data["text"])}
+        except Exception as e:return {"status":"PARSE_ERROR","detail":str(e)}
+
     def close(self):
         try:self.browser.close()
         finally:self._pw.stop()
