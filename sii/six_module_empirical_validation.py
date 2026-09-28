@@ -39,6 +39,10 @@ def run():
         },
     }
 
+    pit_has_selection = bool(pit.get("selected_observations", 0) > 0 and pit.get("fundamental_coverage_rate", 0) > 0)
+    if not pit_has_selection:
+        for k in ("valuation_gap","earnings_acceleration","cash_conversion","reinvestment_roic","governance_balance_sheet"):
+            module_results[k]["historical_status"] = "NOT_VALIDATED_NO_PIT_OBSERVATIONS"
     tested = sum(v["historical_status"] == "EMPIRICALLY_TESTED" for v in module_results.values())
     sixth_unknown = module_results["industry_catalyst"]["historical_status"] != "EMPIRICALLY_TESTED"
     lookahead_clean = bool(pit.get("lookahead_checks", {}).get("future_revisions_excluded")) and bool(
