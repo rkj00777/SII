@@ -135,42 +135,70 @@ class NSEFinancialIngestor:
         self.adapter=NSEAdapter()
         self.browser=None
     def catalog(self,symbol=None,start=None,end=None,page_size=100,issuer=None):
-        payload={"type":"Integrated Filing- Financials","page":1,"size":page_size,"index":"equities","period_ended":"all"}
-        if symbol: payload["symbol"]=symbol
-        if issuer: payload["issuer"]=issuer
-        if start and end: payload["from_date"]=start.strftime("%d-%m-%Y"); payload["to_date"]=end.strftime("%d-%m-%Y")
-        r=self.adapter.get("https://www.nseindia.com/api/integrated-filing-results",params=payload)
-        if r.status=="OK":
-            import json
-            try:
-                data=json.loads(r.content.decode("utf-8")); rows=extract_filing_rows(data)
-                if rows: return {"status":"OK","rows":rows,"raw":data}
-            except Exception as ex:
-                plain_error=f'plain catalog parse: {type(ex).__name__}: {ex}'
-        else:
-            plain_error='plain catalog returned no usable XBRL rows'
+        # NSE's Integrated Filing - Financials is the post-2024/25 feed. The
+        # 2019-2024 PIT window must use the legacy Financial Results endpoint,
+        # which exposes historical XBRL links. Do not depend on the newer feed
+        # for the historical validation period.
+        historical = bool(start and start.year < 2025)
         try:
             if self.browser is None:
                 from .nse_browser import NSEBrowserCatalog
                 self.browser=NSEBrowserCatalog()
+
+            if historical:
+                legacy=self.browser.fetch_legacy(symbol,period="Quarterly",start=None,end=None,page=1,size=page_size)
+                if legacy.get("status")!="OK":
+                    return {"status":legacy.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":legacy.get("detail")}
+                rows=extract_filing_rows(legacy.get("raw"))
+                rows=self._filter_filing_rows(rows,start,end)
+                if rows:
+                    return {"status":"OK","rows":rows,"raw":legacy.get("raw"),"source":"legacy_financial_results"}
+                return {"status":"NO_XBRL_ROWS","rows":[],"detail":"Legacy Financial Results returned no XBRL filings in requested historical window.","raw":legacy.get("raw")}
+
+            payload={"type":"Integrated Filing- Financials","page":1,"size":page_size,"index":"equities","period_ended":"all"}
+            if symbol: payload["symbol"]=symbol
+            if issuer: payload["issuer"]=issuer
+            if start and end: payload["from_date"]=start.strftime("%d-%m-%Y"); payload["to_date"]=end.strftime("%d-%m-%Y")
+            r=self.adapter.get("https://www.nseindia.com/api/integrated-filing-results",params=payload)
+            if r.status=="OK":
+                import json
+                try:
+                    data=json.loads(r.content.decode("utf-8")); rows=extract_filing_rows(data)
+                    if rows: return {"status":"OK","rows":rows,"raw":data,"source":"integrated_filing"}
+                except Exception as ex:
+                    plain_error=f'plain catalog parse: {type(ex).__name__}: {ex}'
+            else:
+                plain_error='plain catalog returned no usable XBRL rows'
             br=self.browser.fetch(symbol,start,end,page=1,size=page_size,issuer=issuer)
             if br.get("status")!="OK":
                 return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":f"{plain_error}; {br.get('detail')}"}
             data=br.get("raw"); rows=extract_filing_rows(data)
-            # Always query the legacy financial-results feed as a free fallback.
-            # It still exposes direct XBRL links for many issuers and is useful when
-            # the Integrated Filing feed is blocked or its attachment schema changes.
             try:
-                legacy=self.browser.fetch_legacy(symbol,period="Quarterly",start=start,end=end)
+                legacy=self.browser.fetch_legacy(symbol,period="Quarterly",start=None,end=None)
                 legacy_rows=extract_filing_rows(legacy.get("raw")) if legacy.get("status")=="OK" else []
             except Exception:
                 legacy_rows=[]
             merged={ (x["xbrl_url"],str(x.get("period_end"))):x for x in legacy_rows+rows }
+            merged=self._filter_filing_rows(list(merged.values()),start,end)
             if not merged:
                 return {"status":"NO_XBRL_ROWS","rows":[],"detail":f"{plain_error}; browser integrated+legacy returned no XBRL rows","raw":data}
-            return {"status":"OK","rows":list(merged.values()),"raw":data}
+            return {"status":"OK","rows":merged,"raw":data}
         except Exception as ex:
-            return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"{plain_error}; NSE browser fallback: {type(ex).__name__}: {ex}"}
+            return {"status":"DATA_UNAVAILABLE","rows":[],"detail":f"NSE filing catalog: {type(ex).__name__}: {ex}"}
+
+    @staticmethod
+    def _filter_filing_rows(rows,start,end):
+        if not rows:return []
+        out=[]
+        lo=pd.to_datetime(start) if start is not None else None
+        hi=pd.to_datetime(end) if end is not None else None
+        for row in rows:
+            pe=pd.to_datetime(row.get("period_end"),errors="coerce")
+            if pd.isna(pe): continue
+            if lo is not None and pe < lo: continue
+            if hi is not None and pe > hi: continue
+            out.append(row)
+        return out
     def _parse_financial_html(self, raw, filing):
         soup=BeautifulSoup(raw, "html.parser")
         text_all=soup.get_text(" ",strip=True)
