@@ -161,7 +161,7 @@ class NSEFinancialIngestor:
             # It still exposes direct XBRL links for many issuers and is useful when
             # the Integrated Filing feed is blocked or its attachment schema changes.
             try:
-                legacy=self.browser.fetch_legacy(symbol,period="Quarterly")
+                legacy=self.browser.fetch_legacy(symbol,period="Quarterly",start=start,end=end)
                 legacy_rows=extract_filing_rows(legacy.get("raw")) if legacy.get("status")=="OK" else []
             except Exception:
                 legacy_rows=[]
