@@ -17,98 +17,98 @@
       "symbol": "TBZ",
       "issuer": "Tribhovandas Bhimji Zaveri Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "RAYMOND",
       "issuer": "Raymond Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "BODALCHEM",
       "issuer": "Bodal Chemicals Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "AHCL",
       "issuer": "Anlon Healthcare Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "INDORAMA",
       "issuer": "Indo Rama Synthetics (India) Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "KABRAEXTRU",
       "issuer": "Kabra Extrusion Technik Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "STLNETWORK",
       "issuer": "STL Networks Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "MOREPENLAB",
       "issuer": "Morepen Laboratories Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "FILATEX",
       "issuer": "Filatex India Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "MANINDS",
       "issuer": "Man Industries (India) Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "WELCORP",
       "issuer": "Welspun Corp Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "ANTELOPUS",
       "issuer": "Antelopus Selan Energy Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "BHAGERIA",
       "issuer": "Bhageria Industries Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     },
     {
       "exchange": "NSE",
       "symbol": "BIRLACABLE",
       "issuer": "Birla Cable Limited",
       "catalog_status": "DATA_UNAVAILABLE",
-      "detail": "NSE filing catalog: Error: It looks like you are using Playwright Sync API inside the asyncio loop.\nPlease use the Async API instead."
+      "detail": "NSE filing catalog: RuntimeError: NSE Playwright startup failed: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.nseindia.com/companies-listing/corporate-integrated-filing\nCall log:\n  - navigating to \"https://www.nseindia.com/companies-listing/corporate-integrated-filing\", waiting until \"domcontentloaded\"\n"
     }
   ],
   "selection_rule": "Blind current NSE EQ/BE plus BSE A/B/T universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
