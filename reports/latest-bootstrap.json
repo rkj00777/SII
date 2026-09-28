@@ -1,13 +1,13 @@
 {
   "job": "bootstrap",
-  "started_at": "2026-09-28T00:46:38.953878",
-  "finished_at": "2026-09-28T00:46:52.107621",
+  "started_at": "2026-09-28T11:18:31.876560",
+  "finished_at": "2026-09-28T11:18:44.862743",
   "universe": {
     "nse_main": 2601,
-    "nse_sme": 572,
+    "nse_sme": 573,
     "bse_status": "DATA_UNAVAILABLE",
     "eligible": 571,
-    "excluded": 1,
+    "excluded": 2,
     "source_status": {
       "MAIN": "OK",
       "SME": "OK"
@@ -15,7 +15,7 @@
   },
   "bse_universe": {
     "status": "OK",
-    "as_of": "2026-09-28T00:46:50.739985",
+    "as_of": "2026-09-28T11:18:43.957427",
     "rows": 2671,
     "raw_rows": 2671,
     "source": "TejHQ BSE market-data fallback",
