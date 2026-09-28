@@ -83,6 +83,8 @@ def _load_metrics(symbol, ing, start, end):
 def _score(frame):
     cols=["pe","pat_yoy","cfo_pat","roic","balance"]
     for c in cols:
+        if c not in frame.columns: frame[c]=pd.NA
+    for c in cols:
         frame[c]=pd.to_numeric(frame[c],errors="coerce")
     def pct(s):return s.rank(pct=True,method="average")*100
     frame["valuation"]=100-pct(frame["pe"].where(frame["pe"]>0))
