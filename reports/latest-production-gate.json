@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-09-28T11:20:04.029316",
+  "timestamp_utc": "2026-09-28T11:26:47.764724",
   "engine": "SII-v4.0.0-FREE-ONLY",
   "operational_production_ready": true,
   "empirical_selection_validation_ready": false,
@@ -414,7 +414,8 @@
     "blind_pit_liquidity_universe": "PASS",
     "live_filing_enrichment": "PASS",
     "historical_forward_outcomes": "PASS",
-    "full_pit_fundamental_selection_falsification": "OPEN"
+    "full_pit_fundamental_selection_falsification": "OPEN",
+    "independent_era_falsification": "OPEN"
   },
   "definition": "Operational production ready means the engine can run unattended, free-only, PIT-aware, evidence-gated and firewall-protected. It does not claim that the six-module fundamental selector has passed multi-year PIT falsification."
 }
