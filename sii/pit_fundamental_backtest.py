@@ -166,13 +166,23 @@ def run(start_year=2019,end_year=2024,rank_max=500,candidate_pool=100,horizon_da
       WHERE adj_close IS NOT NULL
     """
     pdf=con.execute(priceq).fetchdf();con.close();pdf["date"]=pd.to_datetime(pdf.date)
-    def outcome(r):
-        d=pd.Timestamp(r.rebalance_date);x=pdf[(pdf.symbol==r.symbol)&(pdf.date>=d)&(pdf.date<=d+pd.Timedelta(days=horizon_days))]
-        if x.empty:return None
-        base=float(x.iloc[0].adj_close)
-        return float((x.adj_close/base-1).max())
-    sel["max_return"]=sel.apply(outcome,axis=1)
-    df["max_return"]=df.apply(outcome,axis=1)
+    def outcomes(frame):
+        if frame.empty:return frame.assign(max_return=pd.NA)
+        con2=_duckdb()
+        con2.register("obs", frame[["rebalance_date","symbol","adj_close"]].copy())
+        q2=f"""SELECT o.rebalance_date,o.symbol,
+                       max(p.adj_close/o.adj_close-1) AS max_return
+                FROM obs o
+                JOIN read_parquet({prices},union_by_name=true) p
+                  ON p.symbol=o.symbol
+                 AND p.date>=o.rebalance_date
+                 AND p.date<=o.rebalance_date + INTERVAL '{int(horizon_days)} days'
+                 AND p.adj_close IS NOT NULL
+                GROUP BY o.rebalance_date,o.symbol"""
+        oo=con2.execute(q2).fetchdf(); con2.close()
+        return frame.merge(oo,on=["rebalance_date","symbol"],how="left")
+    sel=outcomes(sel)
+    df=outcomes(df)
     def rate(x,t):return float((x>=t).mean()) if len(x) else None
     era_stats=[]
     for label,lo,hi in [("2019-2020",2019,2020),("2021-2022",2021,2022),("2023-2024",2023,2024)]:
