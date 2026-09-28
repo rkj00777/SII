@@ -23,8 +23,10 @@ class NSEBrowserCatalog:
         try: return {"status":"OK","raw":json.loads(data["text"])}
         except Exception as e: return {"status":"PARSE_ERROR","detail":str(e)}
 
-    def fetch_legacy(self,symbol,period="Quarterly"):
+    def fetch_legacy(self,symbol,period="Quarterly",start=None,end=None):
         params={"index":"equities","period":period}
+        if start: params["from_date"]=start.strftime("%d-%m-%Y")
+        if end: params["to_date"]=end.strftime("%d-%m-%Y")
         if symbol: params["symbol"]=symbol
         url="https://www.nseindia.com/api/corporates-financial-results?"+urlencode(params)
         data=self.page.evaluate("""async (url) => {
