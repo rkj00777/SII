@@ -23,8 +23,8 @@ class NSEBrowserCatalog:
         try: return {"status":"OK","raw":json.loads(data["text"])}
         except Exception as e: return {"status":"PARSE_ERROR","detail":str(e)}
 
-    def fetch_legacy(self,symbol,period="Quarterly",start=None,end=None):
-        params={"index":"equities","period":period}
+    def fetch_legacy(self,symbol,period="Quarterly",start=None,end=None,page=1,size=100):
+        params={"index":"equities","period":period,"page":page,"size":size}
         if start: params["from_date"]=start.strftime("%d-%m-%Y")
         if end: params["to_date"]=end.strftime("%d-%m-%Y")
         if symbol: params["symbol"]=symbol
