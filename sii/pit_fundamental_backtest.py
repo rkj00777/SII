@@ -101,7 +101,10 @@ def _score(frame):
     frame["fundamental_coverage"]=coverage
     return frame
 
-def run(start_year=2019,end_year=2024,rank_max=500,candidate_pool=100,horizon_days=756):
+def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_days=756):
+    rank_max=int(rank_max or os.getenv("SII_PIT_RANK_MAX","300"))
+    candidate_pool=int(candidate_pool or os.getenv("SII_PIT_CANDIDATE_POOL","40"))
+    horizon_days=int(os.getenv("SII_PIT_HORIZON_DAYS",str(horizon_days)))
     con=_duckdb()
     up=f"{HF}/universe/nse_liquid.parquet"
     prices="["+",".join(repr(f"{HF}/prices_adjusted/nse_{y}.parquet") for y in range(start_year,min(2026,end_year+3)+1))+"]"
