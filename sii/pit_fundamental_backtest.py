@@ -7,7 +7,7 @@ known facts, and then measures subsequent price outcomes.
 Primary validation window: NSE 2019-2024. BSE current/live coverage is separate
 because the free TejHQ BSE price tree begins 2024-07-08.
 """
-import json, os
+import json, os, traceback
 from datetime import datetime, date, time, timedelta
 from pathlib import Path
 import pandas as pd
@@ -220,4 +220,11 @@ def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_
     sel.to_csv(out/"pit_fundamental_selected.csv",index=False)
     return report
 
-if __name__=="__main__":print(json.dumps(run(),indent=2,default=str))
+if __name__=="__main__":
+    try:
+        report=run()
+    except Exception as exc:
+        out=Path(os.getenv("SII_OUTPUT_DIR","artifacts")); out.mkdir(exist_ok=True)
+        report={"status":"ERROR","validation_type":"PIT_fundamental_selection","error_type":type(exc).__name__,"error":str(exc),"traceback":traceback.format_exc(),"production_ready":False}
+        (out/"pit_fundamental_backtest.json").write_text(json.dumps(report,indent=2,default=str))
+    print(json.dumps(report,indent=2,default=str))
