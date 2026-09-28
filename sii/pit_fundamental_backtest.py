@@ -122,12 +122,15 @@ def run(start_year=2019,end_year=2024,rank_max=500,candidate_pool=100,horizon_da
     p=con.execute(f"SELECT date,symbol,adj_close FROM read_parquet({prices},union_by_name=true) WHERE adj_close IS NOT NULL").fetchdf()
     con.close()
     p["date"]=pd.to_datetime(p.date);p=p.sort_values(["symbol","date"])
-    p["m126"]=p.groupby("symbol").adj_close.transform(lambda s:s/s.shift(126)-1)
-    latestp=p.sort_values("date").groupby("symbol",as_index=False).tail(1)
     tech=[]
     for d,g in uq.groupby("rebalance_date"):
-        x=g.merge(p[p.date<=pd.Timestamp(d)].sort_values("date").groupby("symbol",as_index=False).tail(1)[["symbol","adj_close"]],on="symbol",how="left")
-        mom=p[p.date<=pd.Timestamp(d)].groupby("symbol").tail(127).groupby("symbol").adj_close.apply(lambda s:s.iloc[-1]/s.iloc[0]-1 if len(s)>=127 else None).rename("mom126").reset_index()
+        cutoff_d=pd.Timestamp(d)
+        px=p[(p.date<=cutoff_d) & (p.symbol.isin(g.symbol))]
+        x=g.merge(px.sort_values("date").groupby("symbol",as_index=False).tail(1)[["symbol","adj_close"]],on="symbol",how="left")
+        old=px[px.date<=cutoff_d-pd.Timedelta(days=126)].sort_values("date").groupby("symbol",as_index=False).tail(1)[["symbol","adj_close"]].rename(columns={"adj_close":"old_close"})
+        mom=x[["symbol","adj_close"]].merge(old,on="symbol",how="left")
+        mom["mom126"]=mom["adj_close"]/mom["old_close"]-1
+        mom=mom[["symbol","mom126"]]
         x=x.merge(mom,on="symbol",how="left").sort_values("mom126",ascending=False).head(candidate_pool)
         x["rebalance_date"]=d;tech.append(x)
     cand=pd.concat(tech,ignore_index=True)
@@ -171,6 +174,12 @@ def run(start_year=2019,end_year=2024,rank_max=500,candidate_pool=100,horizon_da
     sel["max_return"]=sel.apply(outcome,axis=1)
     df["max_return"]=df.apply(outcome,axis=1)
     def rate(x,t):return float((x>=t).mean()) if len(x) else None
+    era_stats=[]
+    for label,lo,hi in [("2019-2020",2019,2020),("2021-2022",2021,2022),("2023-2024",2023,2024)]:
+        sg=sel[(sel.rebalance_date>=f"{lo}-01-01")&(sel.rebalance_date<=f"{hi}-12-31")]
+        cg=df[(df.rebalance_date>=f"{lo}-01-01")&(df.rebalance_date<=f"{hi}-12-31")]
+        sr=rate(sg.max_return,1); cr=rate(cg.max_return,1)
+        era_stats.append({"era":label,"selected_observations":int(len(sg)),"candidate_observations":int(len(cg)),"selected_hit_100_rate":sr,"candidate_hit_100_rate":cr,"selection_lift_100":float(sr/cr) if sr is not None and cr else None})
     report={
       "status":"OK","validation_type":"PIT_fundamental_selection",
       "window":f"{start_year}-{end_year}","decision_months":int(df.rebalance_date.nunique()),
@@ -186,8 +195,10 @@ def run(start_year=2019,end_year=2024,rank_max=500,candidate_pool=100,horizon_da
       "observable_cutoff":str(cutoff),
       "horizon_days":horizon_days,
       "lookahead_checks":{"filing_available_at_lte_decision":True,"future_revisions_excluded":True,"price_entry_after_rebalance":True},
+      "independent_era_falsification":era_stats,
+      "independent_era_positive_lifts":int(sum(1 for e in era_stats if (e.get("selection_lift_100") or 0)>1.0)),
       "production_ready":False,
-      "production_gate":"Requires positive selection lift across independent eras, minimum PIT evidence coverage, and no material lookahead violations.",
+      "production_gate":"Requires >=500 selected observations, >=70% PIT coverage, lift >=1.05, positive lift in >=2 independent eras, and no lookahead violations.",
       "limitations":["NSE historical fundamental core selector; industry/catalyst evidence is not included in this validation stage.","BSE historical price coverage in the free TejHQ tree begins 2024-07-08, so BSE is validated separately from that date onward."]}
     out=Path(os.getenv("SII_OUTPUT_DIR","artifacts"));out.mkdir(exist_ok=True)
     (out/"pit_fundamental_backtest.json").write_text(json.dumps(report,indent=2,default=str))
