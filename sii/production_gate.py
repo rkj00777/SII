@@ -18,7 +18,9 @@ def run():
     if pp.exists():
         pit=json.loads(pp.read_text())
     tests=os.getenv("SII_TESTS_STATUS","PASS")
-    pit_ready = (pit.get("status")=="OK" and pit.get("selected_observations",0)>=500 and pit.get("fundamental_coverage_rate",0)>=0.70 and (pit.get("selection_lift_100") or 0)>=1.05 and pit.get("lookahead_checks",{}).get("future_revisions_excluded") is True)
+    eras=pit.get("independent_era_falsification",[]) or []
+    positive_eras=sum(1 for e in eras if (e.get("selection_lift_100") or 0)>1.0)
+    pit_ready = (pit.get("status")=="OK" and pit.get("selected_observations",0)>=500 and pit.get("fundamental_coverage_rate",0)>=0.70 and (pit.get("selection_lift_100") or 0)>=1.05 and positive_eras>=2 and pit.get("lookahead_checks",{}).get("future_revisions_excluded") is True)
     operational = (
         tests=="PASS"
         and live.get("status")=="OK"
@@ -39,7 +41,8 @@ def run():
         "blind_pit_liquidity_universe":"PASS" if live.get("market_universe",0)>=450 else "FAIL",
         "live_filing_enrichment":"PASS" if live.get("fundamental_enrichment_attempted",0)>0 else "FAIL",
         "historical_forward_outcomes":"PASS" if hist.get("observations",0)>=10000 else "FAIL",
-        "full_pit_fundamental_selection_falsification":"PASS" if pit_ready else "OPEN"
+        "full_pit_fundamental_selection_falsification":"PASS" if pit_ready else "OPEN",
+        "independent_era_falsification":"PASS" if positive_eras>=2 else "OPEN"
       },
       "definition":"Operational production ready means the engine can run unattended, free-only, PIT-aware, evidence-gated and firewall-protected. It does not claim that the six-module fundamental selector has passed multi-year PIT falsification."
     }
