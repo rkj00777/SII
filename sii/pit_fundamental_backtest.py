@@ -14,7 +14,7 @@ import pandas as pd
 from .free_market import _duckdb, HF
 from .financial_ingest import NSEFinancialIngestor
 
-CACHE=Path(os.getenv("SII_PIT_CACHE","artifacts/pit_cache"))
+CACHE=Path(os.getenv("SII_PIT_CACHE","artifacts/pit_cache_v3"))
 CACHE.mkdir(parents=True,exist_ok=True)
 
 def _safe(v):
@@ -60,8 +60,14 @@ def _snapshot(metrics, asof):
 def _load_metrics(symbol, ing, start, end):
     p=CACHE/f"{symbol.replace('/','_')}.json"
     if p.exists():
-        try:return json.loads(p.read_text())
-        except Exception:pass
+        try:
+            cached=json.loads(p.read_text())
+            # Empty caches are not authoritative. Earlier runs could have cached
+            # [] before the historical legacy-XBRL repair; retry those symbols.
+            if isinstance(cached,list) and cached:
+                return cached
+        except Exception:
+            pass
     try:
         cat=ing.catalog(symbol,start,end,page_size=100)
         rows=cat.get("rows",[]) if cat.get("status")=="OK" else []
@@ -77,7 +83,10 @@ def _load_metrics(symbol, ing, start, end):
             if parsed.get("status")=="OK":metrics.extend(parsed.get("rows",[]))
         p.write_text(json.dumps(metrics,default=str))
         return metrics
-    except Exception:
+    except Exception as exc:
+        # Never silently turn a filing-source failure into a clean empty dataset.
+        # Persist a compact per-symbol diagnostic while keeping the PIT run alive.
+        p.write_text(json.dumps({"status":"ERROR","error_type":type(exc).__name__,"error":str(exc)},default=str))
         return []
 
 def _score(frame):
