@@ -1,0 +1,51 @@
+{
+  "status": "OK",
+  "validation_type": "empirical_six_module_validation",
+  "timestamp_utc": "2026-09-28T14:25:53.167402",
+  "modules": {
+    "valuation_gap": {
+      "historical_status": "NOT_VALIDATED_NO_PIT_OBSERVATIONS",
+      "source": "PIT fundamental selector"
+    },
+    "earnings_acceleration": {
+      "historical_status": "NOT_VALIDATED_NO_PIT_OBSERVATIONS",
+      "source": "PIT fundamental selector"
+    },
+    "cash_conversion": {
+      "historical_status": "NOT_VALIDATED_NO_PIT_OBSERVATIONS",
+      "source": "PIT fundamental selector"
+    },
+    "reinvestment_roic": {
+      "historical_status": "NOT_VALIDATED_NO_PIT_OBSERVATIONS",
+      "source": "PIT fundamental selector"
+    },
+    "governance_balance_sheet": {
+      "historical_status": "NOT_VALIDATED_NO_PIT_OBSERVATIONS",
+      "source": "PIT fundamental selector"
+    },
+    "industry_catalyst": {
+      "historical_status": "NOT_IDENTIFIABLE_FROM_CURRENT_FREE_PIT_DATA",
+      "source": "No dated historical structured industry/order-book/catalyst evidence is present in the current free PIT dataset.",
+      "rule": "Unknown remains unknown and cannot contribute to historical alpha claims."
+    }
+  },
+  "modules_empirically_tested": 0,
+  "modules_total": 6,
+  "module_coverage": 0.0,
+  "sixth_module_historical_evidence_available": false,
+  "pit_selector_status": "OK",
+  "selected_observations": 0,
+  "fundamental_coverage_rate": 0.0,
+  "selection_lift_100": null,
+  "independent_eras": [],
+  "positive_independent_eras": 0,
+  "lookahead_clean": false,
+  "five_module_empirical_validation_ready": false,
+  "full_six_module_empirical_validation_ready": false,
+  "reason": "The sixth industry/order-book/catalyst module is deliberately not fabricated. It remains unknown for historical PIT validation until dated pre-decision evidence can be reconstructed from a free source.",
+  "required_next_evidence": [
+    "A free historical source containing dated pre-decision industry/order-book/catalyst disclosures.",
+    "Point-in-time extraction with publication timestamp <= decision timestamp.",
+    "Independent-era forward-return falsification with the sixth module enabled."
+  ]
+}

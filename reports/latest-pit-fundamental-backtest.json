@@ -1,0 +1,13 @@
+{
+  "status": "OK",
+  "observations": 6800,
+  "selected_observations": 0,
+  "fundamental_coverage_rate": 0.0,
+  "validation_type": "PIT_fundamental_selection",
+  "production_ready": false,
+  "reason": "No historical observations met 80% verified fundamental coverage",
+  "symbols_considered": 935,
+  "symbols_with_metrics": 0,
+  "metric_rows_loaded": 0,
+  "diagnostic": "Historical filing enrichment returned insufficient PIT metrics for the selected universe; no selection result is claimed."
+}
