@@ -83,10 +83,15 @@ jobs:
           cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/latest-historical-outcome.json reports/latest-pit-fundamental-backtest.json
-          git diff --cached --quiet || git commit -m "Publish latest historical outcome report [skip ci]"
-          git pull --rebase origin main
-          git push
+          git fetch origin main
+          git reset --hard origin/main
+          cp artifacts/historical_outcome_report.json reports/latest-historical-outcome.json
+          cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json
+          python -m sii.production_gate || true
+          cp artifacts/production_gate_report.json reports/latest-production-gate.json
+          git add reports/latest-historical-outcome.json reports/latest-pit-fundamental-backtest.json reports/latest-production-gate.json
+          git diff --cached --quiet || git commit -m "Publish latest SII validation reports [skip ci]"
+          git push origin HEAD:main
       - name: Upload historical report
         uses: actions/upload-artifact@v4
         with:
