@@ -1,4 +1,7 @@
 name: SII historical falsification
+concurrency:
+  group: sii-historical-falsification
+  cancel-in-progress: true
 on:
   push:
     branches: [main]
@@ -55,6 +58,9 @@ jobs:
         env:
           SII_START_YEAR: ${{ inputs.start_year || '2019' }}
           SII_END_YEAR: ${{ inputs.end_year || '2024' }}
+          SII_PIT_RANK_MAX: 300
+          SII_PIT_CANDIDATE_POOL: 40
+          SII_PIT_MAX_SYMBOLS: 40
         run: python -m sii.pit_fundamental_backtest
       - name: Run tests
         run: pytest -q
