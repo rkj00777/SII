@@ -61,7 +61,19 @@ jobs:
           SII_PIT_RANK_MAX: 300
           SII_PIT_CANDIDATE_POOL: 40
           SII_PIT_MAX_SYMBOLS: 40
-        run: python -m sii.pit_fundamental_backtest
+        run: |
+          set +e
+          python -m sii.pit_fundamental_backtest 2>&1 | tee artifacts/pit_run.log
+          rc=$PIPESTATUS
+          echo PIT_RC=$rc | tee -a artifacts/pit_run.log
+          exit $rc
+      - name: Upload PIT diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sii-pit-diagnostics
+          path: artifacts/pit_run.log
+          if-no-files-found: ignore
       - name: Run tests
         run: pytest -q
       - name: Publish historical report
