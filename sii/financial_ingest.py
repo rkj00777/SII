@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import re
 import html
 import os
+import pandas as pd
 from bs4 import BeautifulSoup
 from .adapters import NSEAdapter
 from urllib.parse import urljoin
