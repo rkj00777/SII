@@ -90,6 +90,7 @@ jobs:
             git reset --hard origin/main
             cp artifacts/historical_outcome_report.json reports/latest-historical-outcome.json
             cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json
+            cp artifacts/six_module_empirical_validation.json reports/latest-six-module-empirical-validation.json
             python -m sii.production_gate || true
             cp artifacts/production_gate_report.json reports/latest-production-gate.json
             git add reports/latest-historical-outcome.json reports/latest-pit-fundamental-backtest.json reports/latest-six-module-empirical-validation.json reports/latest-production-gate.json
