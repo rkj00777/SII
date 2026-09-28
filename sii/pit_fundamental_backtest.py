@@ -143,6 +143,8 @@ def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_
     ing=NSEFinancialIngestor()
     start=datetime(start_year-1,1,1);end=datetime(end_year,12,31,23,59,59)
     metric_map={s:_load_metrics(s,ing,start,end) for s in symbols}
+    metrics_loaded=sum(1 for v in metric_map.values() if v)
+    metrics_rows=sum(len(v) for v in metric_map.values())
     rows=[]
     for _,r in cand.iterrows():
         d=pd.Timestamp(r.rebalance_date).date()
@@ -161,9 +163,19 @@ def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_
         s["selected"]=True;selected.append(s)
     sel=pd.concat(selected,ignore_index=True) if selected else pd.DataFrame()
     if sel.empty:
-        return {"status":"OK","observations":int(len(df)),"selected_observations":0,"fundamental_coverage":0.0,
-                "validation_type":"PIT_fundamental_selection","production_ready":False,
-                "reason":"No historical observations met 80% verified fundamental coverage"}
+        report={
+          "status":"OK","observations":int(len(df)),"selected_observations":0,
+          "fundamental_coverage_rate":float((df.fundamental_coverage>=.80).mean()) if len(df) else 0.0,
+          "validation_type":"PIT_fundamental_selection","production_ready":False,
+          "reason":"No historical observations met 80% verified fundamental coverage",
+          "symbols_considered":int(len(symbols)),
+          "symbols_with_metrics":int(metrics_loaded),
+          "metric_rows_loaded":int(metrics_rows),
+          "diagnostic":"Historical filing enrichment returned insufficient PIT metrics for the selected universe; no selection result is claimed."
+        }
+        out=Path(os.getenv("SII_OUTPUT_DIR","artifacts"));out.mkdir(exist_ok=True)
+        (out/"pit_fundamental_backtest.json").write_text(json.dumps(report,indent=2,default=str))
+        return report
     # Forward outcomes for selected observations and the entire candidate pool.
     con=_duckdb()
     priceq=f"""
