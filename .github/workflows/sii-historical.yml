@@ -74,6 +74,8 @@ jobs:
           name: sii-pit-diagnostics
           path: artifacts/pit_run.log
           if-no-files-found: ignore
+      - name: Run empirical six-module validation
+        run: python -m sii.six_module_empirical_validation
       - name: Run tests
         run: pytest -q
       - name: Publish historical report
@@ -90,7 +92,7 @@ jobs:
             cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json
             python -m sii.production_gate || true
             cp artifacts/production_gate_report.json reports/latest-production-gate.json
-            git add reports/latest-historical-outcome.json reports/latest-pit-fundamental-backtest.json reports/latest-production-gate.json
+            git add reports/latest-historical-outcome.json reports/latest-pit-fundamental-backtest.json reports/latest-six-module-empirical-validation.json reports/latest-production-gate.json
             git diff --cached --quiet || git commit -m "Publish latest SII validation reports [skip ci]"
             if git push origin HEAD:main; then exit 0; fi
             sleep 10
