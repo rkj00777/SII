@@ -17,6 +17,10 @@ def run():
     pp=Path("reports/latest-pit-fundamental-backtest.json")
     if pp.exists():
         pit=json.loads(pp.read_text())
+    bp=Path("reports/latest-bse-pit-fundamental-validation.json")
+    if bp.exists():
+        bpit=json.loads(bp.read_text())
+        if bpit.get("selected_observations",0)>pit.get("selected_observations",0): pit=bpit
     tests=os.getenv("SII_TESTS_STATUS","PASS")
     six={}
     sp=Path("reports/latest-six-module-empirical-validation.json")
