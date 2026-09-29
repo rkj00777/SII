@@ -1,7 +1,9 @@
 {
-  "timestamp_utc": "2026-09-29T08:40:13.774526",
+  "timestamp_utc": "2026-09-29T08:46:39.638846",
   "engine": "SII-v4.0.0-FREE-ONLY",
   "operational_production_ready": true,
+  "system_ready_for_live_operation": true,
+  "research_validation_pending": true,
   "empirical_selection_validation_ready": false,
   "five_module_empirical_validation_ready": false,
   "full_six_module_empirical_validation_ready": false,
@@ -432,5 +434,5 @@
     "independent_era_falsification": "OPEN",
     "six_module_empirical_validation": "OPEN"
   },
-  "definition": "Operational production ready means the engine can run unattended, free-only, PIT-aware, evidence-gated and firewall-protected. It does not claim that the six-module fundamental selector has passed multi-year PIT falsification."
+  "definition": "System-ready means unattended free-only live operation is operational and evidence-gated. Historical PIT/fundamental and six-module falsification is a separate research-validation gate and must never be represented as passed until empirically demonstrated."
 }
