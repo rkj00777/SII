@@ -8,7 +8,8 @@ import json, re
 from pathlib import Path
 from datetime import timedelta
 import pandas as pd
-from .adapters import NSEAdapter
+from .adapters import NSEAdapter, BSEAdapter
+from .bse_pit_validation import _map_symbol
 
 CATALYST_RE = re.compile(
     r"order|contract|award|order book|capacity|expansion|commission|"
@@ -38,12 +39,12 @@ def _pit_source():
     return n
 
 def _available(r):
-    for k in ("exchdisstime","an_dt","sort_date","broadcastDateTime","broadcastDate"):
+    for k in ("exchdisstime","DissemDT","News_submission_dt","an_dt","sort_date","broadcastDateTime","broadcastDate"):
         d=pd.to_datetime(r.get(k),errors="coerce")
         if not pd.isna(d): return d.to_pydatetime().replace(tzinfo=None)
     return None
 
-def _fetch(symbol,start,end,adapter):
+def _fetch(symbol,start,end,nse_adapter,bse_adapter):
     cp=Path("artifacts/module6_announcements")/f"{str(symbol).replace('/','_')}.json"
     cp.parent.mkdir(parents=True,exist_ok=True)
     if cp.exists():
@@ -51,19 +52,33 @@ def _fetch(symbol,start,end,adapter):
             x=json.loads(cp.read_text())
             if isinstance(x,list): return x
         except Exception: pass
+    out=[]
     try:
         params={"index":"equities","symbol":str(symbol),
                 "from_date":start.strftime("%d-%m-%Y"),
                 "to_date":end.strftime("%d-%m-%Y")}
-        r=adapter.get("https://www.nseindia.com/api/corporate-announcements",params=params)
-        if r.status!="OK": return []
-        x=json.loads(r.content.decode("utf-8"))
-        rows=x if isinstance(x,list) else x.get("data",x.get("rows",[]))
-        if not isinstance(rows,list): rows=[]
-        cp.write_text(json.dumps(rows,default=str))
-        return rows
+        r=nse_adapter.get("https://www.nseindia.com/api/corporate-announcements",params=params)
+        if r.status=="OK":
+            x=json.loads(r.content.decode("utf-8"))
+            rows=x if isinstance(x,list) else x.get("data",x.get("rows",[]))
+            if isinstance(rows,list): out.extend(rows)
     except Exception:
-        return []
+        pass
+    try:
+        code=_map_symbol(symbol,bse_adapter)
+        if code:
+            for page in range(1,9):
+                r=bse_adapter.all_announcements(code,start,end,page)
+                if r.status!="OK": break
+                x=json.loads(r.content.decode("utf-8"))
+                rows=x.get("Table",[]) if isinstance(x,dict) else []
+                if not rows: break
+                out.extend(rows)
+                if len(rows)<50: break
+    except Exception:
+        pass
+    cp.write_text(json.dumps(out,default=str))
+    return out
 
 def run():
     pit=_pit_source(); sel=_selected()
@@ -82,17 +97,17 @@ def run():
           "reason":"No PIT selected-observation CSV was produced."}
     else:
         sel["rebalance_date"]=pd.to_datetime(sel["rebalance_date"],errors="coerce")
-        adapter=NSEAdapter(); out=[]
+        nse_adapter=NSEAdapter(); bse_adapter=BSEAdapter(); out=[]
         for symbol,g in sel.groupby("symbol"):
             rows=_fetch(symbol,
                 (g.rebalance_date.min()-pd.Timedelta(days=365)).to_pydatetime(),
-                g.rebalance_date.max().to_pydatetime(),adapter)
+                g.rebalance_date.max().to_pydatetime(),nse_adapter,bse_adapter)
             for _,o in g.iterrows():
                 decision=o.rebalance_date.to_pydatetime().replace(hour=15,minute=30,second=0)
                 hit=0
                 for a in rows:
                     av=_available(a)
-                    txt=" ".join(str(a.get(k) or "") for k in ("desc","attchmntText","subject","details"))
+                    txt=" ".join(str(a.get(k) or "") for k in ("desc","attchmntText","subject","details","NEWSSUB","HEADLINE","MORE","CATEGORYNAME"))
                     if av and av<=decision and av>=decision-timedelta(days=365) and CATALYST_RE.search(txt):
                         hit+=1
                 out.append({"symbol":symbol,"rebalance_date":o.rebalance_date,
