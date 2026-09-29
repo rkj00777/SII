@@ -1,0 +1,50 @@
+name: SII historical fallback validation
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run historical outcomes
+        env:
+          SII_JOB: historical
+          SII_START_YEAR: "2019"
+          SII_END_YEAR: "2024"
+        run: python -m sii.runner
+      - name: Run free fundamentals fallback
+        env:
+          SII_BSE_PIT_MAX_SYMBOLS: "100"
+          SII_BSE_PIT_WORKERS: "8"
+        run: python -m sii.bse_pit_validation
+      - name: Run six-module empirical validation
+        run: python -m sii.six_module_empirical_validation
+      - name: Run tests
+        run: pytest -q
+      - name: Publish reports
+        run: |
+          mkdir -p reports
+          cp artifacts/historical_outcome_report.json reports/latest-historical-outcome.json
+          if [ -f artifacts/bse_pit_fundamental_validation.json ]; then cp artifacts/bse_pit_fundamental_validation.json reports/latest-bse-pit-fundamental-validation.json; fi
+          if [ -f artifacts/six_module_empirical_validation.json ]; then cp artifacts/six_module_empirical_validation.json reports/latest-six-module-empirical-validation.json; fi
+          python -m sii.production_gate || true
+          if [ -f artifacts/production_gate_report.json ]; then cp artifacts/production_gate_report.json reports/latest-production-gate.json; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/latest-historical-outcome.json reports/latest-bse-pit-fundamental-validation.json reports/latest-six-module-empirical-validation.json reports/latest-production-gate.json
+          git diff --cached --quiet || git commit -m "Publish fallback SII validation reports [skip ci]"
+          git push origin HEAD:main || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sii-historical-fallback-validation
+          path: artifacts/*.json
+          if-no-files-found: error
