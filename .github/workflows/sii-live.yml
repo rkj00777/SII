@@ -53,4 +53,4 @@ jobs:
           path: artifacts/*scan*
           if-no-files-found: error
 
-# refreshed 2026-09-27
+# refreshed 2026-09-29 — corrected live fundamental units and strict promotion gate
