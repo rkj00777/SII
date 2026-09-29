@@ -62,6 +62,13 @@ class BSEAdapter(HttpAdapter):
         if end: params['strToDate']=end.strftime('%Y%m%d')
         return self.get(self.ANN_URL, params=params)
 
+    def all_announcements(self,scripcode=None,start=None,end=None,page=1):
+        params={'pageno':page,'strCat':'-1','subcategory':'-1','strSearch':'P','strType':'C'}
+        if scripcode: params['strScrip']=str(scripcode)
+        if start: params['strPrevDate']=start.strftime('%Y%m%d')
+        if end: params['strToDate']=end.strftime('%Y%m%d')
+        return self.get(self.ANN_URL, params=params)
+
 class TejHQAdapter(HttpAdapter):
     BASE='https://api.tejhq.dev/v1'
     def __init__(self): super().__init__('TEJHQ')
