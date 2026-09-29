@@ -1,0 +1,48 @@
+name: SII validated live run
+on:
+  workflow_run:
+    workflows: ["SII historical falsification"]
+    types: [completed]
+permissions:
+  contents: write
+jobs:
+  live:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Run validated SII live blind scan
+        env:
+          SII_JOB: live
+        run: python -m sii.runner
+      - name: Run tests
+        run: pytest -q
+      - name: Evaluate production gate
+        env:
+          SII_TESTS_STATUS: PASS
+        run: python -m sii.production_gate
+      - name: Publish validated live report
+        run: |
+          mkdir -p reports
+          cp artifacts/live_scan_report.json reports/latest-live-scan.json
+          cp artifacts/live_scan_top100.csv reports/latest-live-scan-top100.csv
+          cp artifacts/production_gate_report.json reports/latest-production-gate.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/latest-live-scan.json reports/latest-live-scan-top100.csv reports/latest-production-gate.json
+          git diff --cached --quiet || git commit -m "Publish validated SII live scan [skip ci]"
+          git pull --rebase origin main
+          git push
+      - name: Upload validated live report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sii-validated-live-scan
+          path: artifacts/*scan*
+          if-no-files-found: error
