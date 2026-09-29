@@ -56,7 +56,7 @@ class BSEAdapter(HttpAdapter):
     def security_master(self):
         return self.get(self.URL, params={'Group':'','Scripcode':'','industry':'','segment':'Equity','status':'Active'})
     def announcements(self,scripcode=None,start=None,end=None,page=1):
-        params={'pageno':page,'strCat':-1,'strSearch':'P','strType':'C'}
+        params={'pageno':page,'strCat':'Results','strSearch':'P','strType':'C'}
         if scripcode: params['strScrip']=str(scripcode)
         if start: params['strPrevDate']=start.strftime('%Y%m%d')
         if end: params['strToDate']=end.strftime('%Y%m%d')
