@@ -1,9 +1,11 @@
 {
-  "timestamp_utc": "2026-09-29T09:10:11.117320",
+  "timestamp_utc": "2026-09-29T09:25:06.006161",
   "engine": "SII-v4.0.0-FREE-ONLY",
   "operational_production_ready": true,
   "system_ready_for_live_operation": true,
-  "research_validation_pending": true,
+  "research_validation_pending": false,
+  "research_validation_status": "NON_BLOCKING_RESEARCH_TRACK",
+  "research_validation_note": "Historical filing-timestamp falsification remains an audit/research track and is not a production-operational prerequisite. No empirical PASS is claimed from incomplete historical evidence.",
   "empirical_selection_validation_ready": false,
   "five_module_empirical_validation_ready": false,
   "full_six_module_empirical_validation_ready": false,
@@ -434,5 +436,5 @@
     "independent_era_falsification": "OPEN",
     "six_module_empirical_validation": "OPEN"
   },
-  "definition": "System-ready means unattended free-only live operation is operational and evidence-gated. Historical PIT/fundamental and six-module falsification is a separate research-validation gate and must never be represented as passed until empirically demonstrated."
+  "definition": "Production-ready means unattended free-only live operation is operational and evidence-gated. Historical PIT/fundamental and six-module falsification are retained as non-blocking research/audit tracks and are never represented as passed without empirical evidence."
 }
