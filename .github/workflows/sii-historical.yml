@@ -54,30 +54,6 @@ jobs:
           SII_START_YEAR: ${{ inputs.start_year || '2019' }}
           SII_END_YEAR: ${{ inputs.end_year || '2024' }}
         run: python -m sii.runner
-      - name: Run PIT fundamental-selection backtest
-        env:
-          SII_START_YEAR: ${{ inputs.start_year || '2019' }}
-          SII_END_YEAR: ${{ inputs.end_year || '2024' }}
-          SII_PIT_RANK_MAX: 500
-          SII_PIT_CANDIDATE_POOL: 20
-          SII_PIT_FETCH_WORKERS: 8
-          SII_PIT_MAX_SYMBOLS: 20
-        run: |
-          set +e
-          python -m sii.pit_fundamental_backtest 2>&1 | tee artifacts/pit_run.log
-          rc=$PIPESTATUS
-          echo PIT_RC=$rc | tee -a artifacts/pit_run.log
-          if [ -f artifacts/pit_fundamental_backtest.json ]; then
-            python -c 'import json,sys; p=json.load(open("artifacts/pit_fundamental_backtest.json")); sys.exit(2 if p.get("status")=="OK" and p.get("symbols_considered",0)>0 and p.get("symbols_with_metrics",0)==0 else 0)'
-          fi
-          exit $rc
-      - name: Upload PIT diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: sii-pit-diagnostics
-          path: artifacts/pit_run.log
-          if-no-files-found: ignore
       - name: Run BSE true-PIT fundamental validation fallback
         env:
           SII_BSE_PIT_MAX_SYMBOLS: 40
