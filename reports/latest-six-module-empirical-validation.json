@@ -23,17 +23,52 @@
       "source": "PIT fundamental selector"
     },
     "industry_catalyst": {
-      "historical_status": "NOT_VALIDATED",
-      "source": "NSE dated corporate-announcement evidence, PIT-filtered"
+      "historical_status": "EMPIRICALLY_TESTED",
+      "source": "NSE corporate-announcements API",
+      "selected_observations_tested": 1308,
+      "evidence_rate": 0.9747706422018348,
+      "catalyst_positive_100pct_rate": 0.41411764705882353,
+      "base_selected_100pct_rate": 0.4074923547400612,
+      "catalyst_lift_100": 1.0162586910936982,
+      "lookahead_rule": "announcement dissemination timestamp <= decision timestamp"
     }
   },
-  "modules_empirically_tested": 5,
+  "modules_empirically_tested": 6,
   "modules_total": 6,
-  "module_coverage": 0.8333333333333334,
-  "sixth_module_historical_evidence_available": false,
-  "pit_selector_status": null,
-  "selected_observations": 0,
-  "fundamental_coverage_rate": 0,
+  "module_coverage": 1.0,
+  "sixth_module_historical_evidence_available": true,
+  "pit_selector_status": "OK",
+  "selected_observations": 1308,
+  "fundamental_coverage_rate": 0.041855072463768114,
+  "selection_lift_100": 1.1324702947101748,
+  "independent_eras": [
+    {
+      "era": "2019-2020",
+      "selected_observations": 433,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.394919168591224,
+      "candidate_hit_100_rate": 0.438,
+      "selection_lift_100": 0.9016419374228859
+    },
+    {
+      "era": "2021-2022",
+      "selected_observations": 455,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.46153846153846156,
+      "candidate_hit_100_rate": 0.32658333333333334,
+      "selection_lift_100": 1.4132333601585962
+    },
+    {
+      "era": "2023-2024",
+      "selected_observations": 420,
+      "candidate_observations": 10500,
+      "selected_hit_100_rate": 0.3619047619047619,
+      "candidate_hit_100_rate": 0.30847619047619046,
+      "selection_lift_100": 1.173201605433776
+    }
+  ],
+  "lookahead_clean": true,
+  "five_module_empirical_validation_ready": false,
   "full_six_module_empirical_validation_ready": false,
-  "reason": "No PIT selected-observation CSV was produced."
+  "reason": "Module 6 uses only dated exchange disclosures known by each decision timestamp."
 }

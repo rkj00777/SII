@@ -1,7 +1,47 @@
 {
-  "status": "ERROR",
+  "status": "OK",
   "validation_type": "BSE_PIT_fundamental_selection",
-  "error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-  "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/SII/SII/sii/bse_pit_validation.py\", line 247, in <module>\n    try: print(json.dumps(run(),indent=2,default=str))\n                          ^^^^^\n  File \"/home/runner/work/SII/SII/sii/bse_pit_validation.py\", line 203, in run\n    f[\"balance\"]=f.get(\"debt\")/f.get(\"equity\") if f.get(\"equity\") not in (None,0) else None\n                 ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'NoneType' and 'float'\n",
-  "production_ready": false
+  "window": "2019-2024",
+  "candidate_observations": 34500,
+  "selected_observations": 1308,
+  "fundamental_coverage_rate": 0.041855072463768114,
+  "selected_hit_100_rate": 0.4074923547400612,
+  "candidate_hit_100_rate": 0.35982608695652174,
+  "selection_lift_100": 1.1324702947101748,
+  "independent_era_falsification": [
+    {
+      "era": "2019-2020",
+      "selected_observations": 433,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.394919168591224,
+      "candidate_hit_100_rate": 0.438,
+      "selection_lift_100": 0.9016419374228859
+    },
+    {
+      "era": "2021-2022",
+      "selected_observations": 455,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.46153846153846156,
+      "candidate_hit_100_rate": 0.32658333333333334,
+      "selection_lift_100": 1.4132333601585962
+    },
+    {
+      "era": "2023-2024",
+      "selected_observations": 420,
+      "candidate_observations": 10500,
+      "selected_hit_100_rate": 0.3619047619047619,
+      "candidate_hit_100_rate": 0.30847619047619046,
+      "selection_lift_100": 1.173201605433776
+    }
+  ],
+  "independent_era_positive_lifts": 2,
+  "symbols_considered": 100,
+  "symbols_with_metrics": 54,
+  "lookahead_checks": {
+    "filing_available_at_lte_decision": true,
+    "future_revisions_excluded": true,
+    "price_entry_after_rebalance": true
+  },
+  "production_ready": false,
+  "source": "BSE public financial-result/XBRL filings + NSE historical prices; true filing-timestamp PIT"
 }
