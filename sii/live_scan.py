@@ -281,7 +281,7 @@ def run(top_financial=20, rank_max=500):
     out[["sii_score","evidence_coverage","bucket","firewall"]]=pd.DataFrame(scores,index=out.index)
     out=out.sort_values(["bucket","sii_score","technical_score"],ascending=[True,False,False])
     # Only names with complete-ish evidence and no hard firewall can be promoted.
-    promoted=out[(out["bucket"].isin(["HIGH_PRIORITY","WATCH"])) & (out["evidence_coverage"]>=.80) & (out["firewall"]=="")].head(20)
+    promoted=out[(out["bucket"]=="HIGH_PRIORITY") & (out["evidence_coverage"]>=.80) & (out["firewall"]=="")].head(20)
     cols=["exchange","symbol","name","isin","adj_close","technical_score","sii_score","evidence_coverage","bucket","firewall","pe","pat_yoy","cfo_pat","roic_proxy","debt_equity","rank"]
     result_rows=[]
     for _,r in promoted.iterrows():
@@ -298,6 +298,7 @@ def run(top_financial=20, rank_max=500):
       "production_mode":True,
       "validation_status":"Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
       "promoted":result_rows,
+      "promotion_count":int(len(result_rows)),
       "watchlist":[{k:(None if pd.isna(r.get(k)) else r.get(k)) for k in cols} for _,r in out.head(20).iterrows()],
       "limitations":["Industry/order-book/catalyst module is unknown unless separately evidenced.","Valuation/fundamental scores are cross-sectional among the enriched subset, not analyst estimates.","HF_CC0_RECONSTRUCTED is a current reconstructed fallback and is not filing-timestamp PIT.","No paid data source or proprietary API is used."]
     }
