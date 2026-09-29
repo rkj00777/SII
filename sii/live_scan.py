@@ -15,6 +15,7 @@ import pandas as pd
 from .free_market import _duckdb, HF
 from .financial_ingest import NSEFinancialIngestor
 from .adapters import NSEAdapter
+from .bse_pit_validation import _hf_reconstructed_rows
 
 MODULES = [
     "valuation_gap","earnings_acceleration","cash_conversion",
@@ -239,11 +240,15 @@ def run(top_financial=20, rank_max=500):
         except Exception as ex:
             catalog_diagnostics.append({"exchange":str(row.get("exchange")),"symbol":sym,"status":"EXCEPTION","detail":f"{type(ex).__name__}: {ex}"})
             metrics=[]
+        source="EXCHANGE_XBRL"
+        if not metrics:
+            metrics=_hf_reconstructed_rows(sym,datetime.combine(pd.Timestamp(max_date).date()-timedelta(days=500),datetime.min.time()),datetime.combine(pd.Timestamp(max_date).date(),datetime.min.time()))
+            source="HF_CC0_RECONSTRUCTED" if metrics else "NONE"
         feat=_financial_features(metrics,float(row["adj_close"]),None)
         shares=feat.get("shares")
         if shares and not feat.get("market_cap"):
             feat=_financial_features(metrics,float(row["adj_close"]),shares)
-        enriched.append({**row.to_dict(),**feat,"filing_metric_count":len(metrics)})
+        enriched.append({**row.to_dict(),**feat,"filing_metric_count":len(metrics),"fundamental_source":source})
         time.sleep(.05)
     out=pd.DataFrame(enriched)
     if out.empty:
@@ -284,12 +289,13 @@ def run(top_financial=20, rank_max=500):
       "fundamental_enrichment_with_metrics":int((out["filing_metric_count"]>0).sum()),
       "fundamental_coverage_on_enrichment":float((out["filing_metric_count"]>0).mean()),
       "catalog_diagnostics":catalog_diagnostics,
+      "fundamental_sources":{"exchange_xbrl":int((out["fundamental_source"]=="EXCHANGE_XBRL").sum()),"hf_cc0_reconstructed":int((out["fundamental_source"]=="HF_CC0_RECONSTRUCTED").sum()),"none":int((out["fundamental_source"]=="NONE").sum())},
       "selection_rule":"Blind current NSE EQ/BE plus BSE A/B/T universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
       "production_mode":True,
       "validation_status":"Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
       "promoted":result_rows,
       "watchlist":[{k:(None if pd.isna(r.get(k)) else r.get(k)) for k in cols} for _,r in out.head(20).iterrows()],
-      "limitations":["Industry/order-book/catalyst module is unknown unless separately evidenced.","Valuation/fundamental scores are cross-sectional among the enriched subset, not analyst estimates.","No paid data source or proprietary API is used."]
+      "limitations":["Industry/order-book/catalyst module is unknown unless separately evidenced.","Valuation/fundamental scores are cross-sectional among the enriched subset, not analyst estimates.","HF_CC0_RECONSTRUCTED is a current reconstructed fallback and is not filing-timestamp PIT.","No paid data source or proprietary API is used."]
     }
     outdir=Path(os.getenv("SII_OUTPUT_DIR","artifacts")); outdir.mkdir(exist_ok=True)
     (outdir/"live_scan_report.json").write_text(json.dumps(report,indent=2,default=str))
