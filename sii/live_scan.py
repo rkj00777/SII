@@ -15,7 +15,8 @@ import pandas as pd
 from .free_market import _duckdb, HF
 from .financial_ingest import NSEFinancialIngestor
 from .adapters import NSEAdapter
-from .bse_pit_validation import _hf_reconstructed_rows
+from .bse_pit_validation import _hf_reconstructed_rows, _map_symbol
+import re
 
 MODULES = [
     "valuation_gap","earnings_acceleration","cash_conversion",
@@ -95,6 +96,57 @@ def _financial_features(metrics, close, shares):
     if invested>0 and out.get("ebit_ttm") is not None:
         out["roic_proxy"]=float(out["ebit_ttm"]/invested)
     return out
+
+
+CATALYST_RE = re.compile(
+    r"order|contract|award|order book|capacity|expansion|commission|new plant|"
+    r"production|manufactur|export|strategic|partnership|project|approval|"
+    r"commercial production|customer|business win|large order|major order|"
+    r"supply agreement|long term agreement|acquisition|investment|capex|facility|"
+    r"volume|demand|joint venture|technology agreement", re.I)
+
+def _live_catalyst_evidence(symbol, exchange, asof, nse_adapter, bse_adapter):
+    rows=[]
+    start=asof-timedelta(days=365)
+    try:
+        if exchange == "NSE":
+            params={"index":"equities","symbol":str(symbol),
+                    "from_date":start.strftime("%d-%m-%Y"),
+                    "to_date":asof.strftime("%d-%m-%Y")}
+            r=nse_adapter.get("https://www.nseindia.com/api/corporate-announcements",params=params)
+            if r.status=="OK":
+                x=json.loads(r.content.decode("utf-8"))
+                rows.extend(x if isinstance(x,list) else x.get("data",x.get("rows",[])))
+        code=_map_symbol(symbol,bse_adapter)
+        if code:
+            for page in range(1,5):
+                r=bse_adapter.all_announcements(code,start,asof,page)
+                if r.status!="OK": break
+                x=json.loads(r.content.decode("utf-8"))
+                page_rows=x.get("Table",[]) if isinstance(x,dict) else []
+                if not page_rows: break
+                rows.extend(page_rows)
+                if len(page_rows)<50: break
+    except Exception:
+        pass
+    evidence=[]; seen=set()
+    for a in rows:
+        av=None
+        for k in ("exchdisstime","DissemDT","News_submission_dt","an_dt",
+                  "sort_date","broadcastDateTime","broadcastDate"):
+            d=pd.to_datetime(a.get(k),errors="coerce")
+            if not pd.isna(d):
+                av=d.to_pydatetime().replace(tzinfo=None); break
+        if av is None or av>asof or av<start: continue
+        txt=" ".join(str(a.get(k) or "") for k in
+                     ("desc","attchmntText","subject","details","NEWSSUB",
+                      "HEADLINE","MORE","CATEGORYNAME"))
+        if not CATALYST_RE.search(txt): continue
+        key=(av.date().isoformat(),txt[:180])
+        if key in seen: continue
+        seen.add(key)
+        evidence.append({"available_at":av.isoformat(),"headline":txt[:300]})
+    return evidence
 
 def run(top_financial=50, rank_max=500):
     con=_duckdb()
@@ -183,6 +235,8 @@ def run(top_financial=50, rank_max=500):
     from .bse_financial import BSEFinancialIngestor
     from .adapters import BSEAdapter
     b_ing=BSEFinancialIngestor()
+    nse_ann=NSEAdapter()
+    bse_ann=BSEAdapter()
     bse_codes={}
     try:
         import json as _json
@@ -284,18 +338,25 @@ def run(top_financial=50, rank_max=500):
     # Prospective-candidate funnel: strong current signal is surfaced even when the full
     # six-module evidence gate is not yet satisfied. This is a research queue, not a buy signal.
     prospective=out[(out["sii_score"]>=55) & (out["evidence_coverage"]>=.65) & (out["firewall"]=="")].head(20).copy()
+    catalyst_evidence={}
+    for idx,r in prospective.iterrows():
+        catalyst_evidence[idx]=_live_catalyst_evidence(
+            str(r.get("symbol")), str(r.get("exchange")),
+            pd.Timestamp(max_date).to_pydatetime(), nse_ann, bse_ann)
     verification=prospective.apply(lambda r: {
         "valuation": "PASS" if pd.notna(r.get("pe")) and 0 < float(r.get("pe")) <= 40 else "VERIFY",
         "earnings": "PASS" if pd.notna(r.get("pat_yoy")) and float(r.get("pat_yoy")) > 0 else "FAIL",
         "cash_conversion": "PASS" if pd.notna(r.get("cfo_pat")) and float(r.get("cfo_pat")) >= 0.8 else "VERIFY",
         "roic": "PASS" if pd.notna(r.get("roic_proxy")) and float(r.get("roic_proxy")) >= 0.12 else "VERIFY",
         "balance_sheet": "PASS" if pd.notna(r.get("debt_equity")) and float(r.get("debt_equity")) <= 1.5 else "VERIFY",
-        "industry_catalyst": "VERIFY"
+        "industry_catalyst": "PASS" if len(catalyst_evidence.get(r.name,[])) > 0 else "VERIFY"
     }, axis=1) if not prospective.empty else pd.DataFrame()
     if not prospective.empty:
         for k in ["valuation","earnings","cash_conversion","roic","balance_sheet","industry_catalyst"]: prospective["verify_"+k]=[x[k] for x in verification]
+        prospective["catalyst_evidence_count"]=[len(catalyst_evidence.get(i,[])) for i in prospective.index]
         prospective["verification_status"]=prospective.apply(lambda r: "INVESTABLE_CANDIDATE" if all(r.get("verify_"+k)=="PASS" for k in ["valuation","earnings","cash_conversion","roic","balance_sheet","industry_catalyst"]) else "DUE_DILIGENCE",axis=1)
-    promoted=out[(out["bucket"]=="HIGH_PRIORITY") & (out["evidence_coverage"]>=.80) & (out["firewall"]=="")].head(20)
+    high_priority_research=out[(out["bucket"]=="HIGH_PRIORITY") & (out["evidence_coverage"]>=.80) & (out["firewall"]=="")].head(20)
+    promoted=prospective[prospective["verification_status"]=="INVESTABLE_CANDIDATE"].head(20)
     cols=["exchange","symbol","name","isin","adj_close","technical_score","sii_score","evidence_coverage","bucket","firewall","pe","pat_yoy","cfo_pat","roic_proxy","debt_equity","rank"]
     result_rows=[]
     for _,r in promoted.iterrows():
@@ -313,11 +374,14 @@ def run(top_financial=50, rank_max=500):
       "validation_status":"Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
       "promoted":result_rows,
       "promotion_count":int(len(result_rows)),
-      "prospective_candidates":[{k:(None if pd.isna(r.get(k)) else r.get(k)) for k in list(cols)+["verify_valuation","verify_earnings","verify_cash_conversion","verify_roic","verify_balance_sheet","verify_industry_catalyst","verification_status"]} for _,r in prospective.iterrows()] if not prospective.empty else [],
+      "promotion_gate":"Six-module verification PASS + evidence_coverage >= 0.65 + no firewall",
+      "high_priority_research":[{k:(None if pd.isna(r.get(k)) else r.get(k)) for k in cols} for _,r in high_priority_research.iterrows()],
+      "high_priority_research_count":int(len(high_priority_research)),
+      "prospective_candidates":[{k:(None if pd.isna(r.get(k)) else r.get(k)) for k in list(cols)+["verify_valuation","verify_earnings","verify_cash_conversion","verify_roic","verify_balance_sheet","verify_industry_catalyst","catalyst_evidence_count","verification_status"]} for _,r in prospective.iterrows()] if not prospective.empty else [],
       "prospective_candidate_count":int(len(prospective)),
       "investable_candidate_count":int((prospective.get("verification_status",pd.Series(dtype=str))=="INVESTABLE_CANDIDATE").sum()) if not prospective.empty else 0,
       "watchlist":[{k:(None if pd.isna(r.get(k)) else r.get(k)) for k in cols} for _,r in out.head(20).iterrows()],
-      "limitations":["Industry/order-book/catalyst module is unknown unless separately evidenced.","Valuation/fundamental scores are cross-sectional among the enriched subset, not analyst estimates.","HF_CC0_RECONSTRUCTED is a current reconstructed fallback and is not filing-timestamp PIT.","No paid data source or proprietary API is used."]
+      "limitations":["Module 6 uses dated NSE/BSE corporate-announcement evidence; absence of evidence remains VERIFY rather than PASS.","Valuation/fundamental scores are cross-sectional among the enriched subset, not analyst estimates.","HF_CC0_RECONSTRUCTED is a current reconstructed fallback and is not filing-timestamp PIT.","No paid data source or proprietary API is used."]
     }
     outdir=Path(os.getenv("SII_OUTPUT_DIR","artifacts")); outdir.mkdir(exist_ok=True)
     (outdir/"live_scan_report.json").write_text(json.dumps(report,indent=2,default=str))
