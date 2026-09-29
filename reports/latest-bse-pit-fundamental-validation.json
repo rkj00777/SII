@@ -1,0 +1,47 @@
+{
+  "status": "OK",
+  "validation_type": "BSE_PIT_fundamental_selection",
+  "window": "2019-2024",
+  "candidate_observations": 34500,
+  "selected_observations": 114,
+  "fundamental_coverage_rate": 0.0033043478260869567,
+  "selected_hit_100_rate": 0.5964912280701754,
+  "candidate_hit_100_rate": 0.35982608695652174,
+  "selection_lift_100": 1.6577209093298737,
+  "independent_era_falsification": [
+    {
+      "era": "2019-2020",
+      "selected_observations": 24,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.4166666666666667,
+      "candidate_hit_100_rate": 0.438,
+      "selection_lift_100": 0.9512937595129376
+    },
+    {
+      "era": "2021-2022",
+      "selected_observations": 42,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.7380952380952381,
+      "candidate_hit_100_rate": 0.32658333333333334,
+      "selection_lift_100": 2.2600517624758503
+    },
+    {
+      "era": "2023-2024",
+      "selected_observations": 48,
+      "candidate_observations": 10500,
+      "selected_hit_100_rate": 0.5625,
+      "candidate_hit_100_rate": 0.30847619047619046,
+      "selection_lift_100": 1.823479468971905
+    }
+  ],
+  "independent_era_positive_lifts": 2,
+  "symbols_considered": 100,
+  "symbols_with_metrics": 3,
+  "lookahead_checks": {
+    "filing_available_at_lte_decision": true,
+    "future_revisions_excluded": true,
+    "price_entry_after_rebalance": true
+  },
+  "production_ready": false,
+  "source": "BSE public financial-result/XBRL filings + NSE historical prices; true filing-timestamp PIT"
+}

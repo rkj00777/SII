@@ -23,8 +23,14 @@
       "source": "PIT fundamental selector"
     },
     "industry_catalyst": {
-      "historical_status": "NOT_VALIDATED",
-      "source": "NSE dated corporate-announcement evidence, PIT-filtered"
+      "historical_status": "NOT_VALIDATED_LOW_EVIDENCE",
+      "source": "NSE corporate-announcements API",
+      "selected_observations_tested": 114,
+      "evidence_rate": 1.0,
+      "catalyst_positive_100pct_rate": 0.5964912280701754,
+      "base_selected_100pct_rate": 0.5964912280701754,
+      "catalyst_lift_100": 1.0,
+      "lookahead_rule": "announcement dissemination timestamp <= decision timestamp"
     }
   },
   "modules_empirically_tested": 5,
@@ -32,8 +38,37 @@
   "module_coverage": 0.8333333333333334,
   "sixth_module_historical_evidence_available": false,
   "pit_selector_status": "OK",
-  "selected_observations": 0,
-  "fundamental_coverage_rate": 0.0,
+  "selected_observations": 114,
+  "fundamental_coverage_rate": 0.0033043478260869567,
+  "selection_lift_100": 1.6577209093298737,
+  "independent_eras": [
+    {
+      "era": "2019-2020",
+      "selected_observations": 24,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.4166666666666667,
+      "candidate_hit_100_rate": 0.438,
+      "selection_lift_100": 0.9512937595129376
+    },
+    {
+      "era": "2021-2022",
+      "selected_observations": 42,
+      "candidate_observations": 12000,
+      "selected_hit_100_rate": 0.7380952380952381,
+      "candidate_hit_100_rate": 0.32658333333333334,
+      "selection_lift_100": 2.2600517624758503
+    },
+    {
+      "era": "2023-2024",
+      "selected_observations": 48,
+      "candidate_observations": 10500,
+      "selected_hit_100_rate": 0.5625,
+      "candidate_hit_100_rate": 0.30847619047619046,
+      "selection_lift_100": 1.823479468971905
+    }
+  ],
+  "lookahead_clean": true,
+  "five_module_empirical_validation_ready": false,
   "full_six_module_empirical_validation_ready": false,
-  "reason": "No PIT selected-observation CSV was produced."
+  "reason": "Module 6 uses only dated exchange disclosures known by each decision timestamp."
 }
