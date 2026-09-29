@@ -68,14 +68,14 @@ jobs:
         run: |
           mkdir -p reports
           cp artifacts/historical_outcome_report.json reports/latest-historical-outcome.json
-          cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json
+          if [ -f artifacts/pit_fundamental_backtest.json ]; then cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             cp artifacts/historical_outcome_report.json reports/latest-historical-outcome.json
-            cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json
+            if [ -f artifacts/pit_fundamental_backtest.json ]; then cp artifacts/pit_fundamental_backtest.json reports/latest-pit-fundamental-backtest.json; fi
             cp artifacts/six_module_empirical_validation.json reports/latest-six-module-empirical-validation.json
             cp artifacts/bse_pit_fundamental_validation.json reports/latest-bse-pit-fundamental-validation.json
             python -m sii.production_gate || true
