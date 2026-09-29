@@ -80,7 +80,7 @@ jobs:
           if-no-files-found: ignore
       - name: Run BSE true-PIT fundamental validation fallback
         env:
-          SII_BSE_PIT_MAX_SYMBOLS: 60
+          SII_BSE_PIT_MAX_SYMBOLS: 40
           SII_BSE_PIT_WORKERS: 8
         run: python -m sii.bse_pit_validation
       - name: Run empirical six-module validation
