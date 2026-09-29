@@ -13,7 +13,7 @@ permissions:
   contents: write
 jobs:
   live:
-    if: ${{ github.event_name != 'push' }}
+    if: ${{ github.event_name != 'push' || contains(github.event.head_commit.message, '[run-live]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 330
     steps:
