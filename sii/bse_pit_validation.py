@@ -61,10 +61,15 @@ def _load(symbol, start, end):
         for f in cat.get("rows",[]):
             av=f.get("available_at")
             if av is not None and pd.isna(_dt(av)): continue
-            pe=_dt(f.get("period_end"))
-            if pd.isna(pe) or pe<start or pe>end: continue
+            # BSE announcement rows do not reliably expose the accounting
+            # period in QUARTER_ID. Parse the XBRL first and filter the actual
+            # reported period from the facts.
             parsed=ing.parse_document(f)
-            if parsed.get("status")=="OK": rows.extend(parsed.get("rows",[]))
+            if parsed.get("status")=="OK":
+                for mr in parsed.get("rows",[]):
+                    pe=_dt(mr.get("period_end"))
+                    if pd.isna(pe) or pe<start or pe>end: continue
+                    rows.append(mr)
         p.write_text(json.dumps(rows,default=str))
         return rows
     except Exception as e:
