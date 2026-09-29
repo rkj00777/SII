@@ -150,10 +150,15 @@ def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_
         x["rebalance_date"]=d;tech.append(x)
     cand=pd.concat(tech,ignore_index=True)
     symbols=sorted(cand.symbol.dropna().unique())
+    max_symbols=int(os.getenv("SII_PIT_MAX_SYMBOLS","0") or 0)
+    if max_symbols>0 and len(symbols)>max_symbols:
+        # Deterministic, evenly-spread sample across the candidate symbol list.
+        idx=[round(i*(len(symbols)-1)/(max_symbols-1)) for i in range(max_symbols)] if max_symbols>1 else [0]
+        symbols=[symbols[i] for i in sorted(set(idx))]
     ing=NSEFinancialIngestor()
     start=datetime(start_year-1,1,1);end=datetime(end_year,12,31,23,59,59)
     metric_map={}
-    workers=max(2,min(8,int(os.getenv("SII_PIT_FETCH_WORKERS","6"))))
+    workers=max(2,min(12,int(os.getenv("SII_PIT_FETCH_WORKERS","8"))))
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures={pool.submit(_load_metrics,s,ing,start,end):s for s in symbols}
         for fut in as_completed(futures):
@@ -178,13 +183,13 @@ def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_
     df=_score(pd.DataFrame(rows))
     selected=[]
     for d,g in df.groupby("rebalance_date"):
-        s=g[g.fundamental_coverage>=.80].sort_values("fundamental_score",ascending=False).head(20).copy()
+        s=g[g.fundamental_coverage>=.70].sort_values("fundamental_score",ascending=False).head(20).copy()
         s["selected"]=True;selected.append(s)
     sel=pd.concat(selected,ignore_index=True) if selected else pd.DataFrame()
     if sel.empty:
         report={
           "status":"OK","observations":int(len(df)),"selected_observations":0,
-          "fundamental_coverage_rate":float((df.fundamental_coverage>=.80).mean()) if len(df) else 0.0,
+          "fundamental_coverage_rate":float((df.fundamental_coverage>=.70).mean()) if len(df) else 0.0,
           "validation_type":"PIT_fundamental_selection","production_ready":False,
           "reason":"No historical observations met 70% verified fundamental coverage",
           "symbols_considered":int(len(symbols)),
