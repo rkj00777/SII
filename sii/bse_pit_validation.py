@@ -124,15 +124,16 @@ def _snapshot(metrics, asof):
     for m in ("debt","cash","equity","shares"):
         z=df[df.metric==m].sort_values(["period_end","available_at"])
         if not z.empty: out[m]=float(z.iloc[-1].value)
-    pat=out.get("pat"); cfo=out.get("cfo"); ebit=out.get("ebit")
-    if pat is not None and len(pat)>=4:
-        out["pat_ttm"]=float(pat.tail(4).value.sum())
-        if len(pat)>=5 and float(pat.iloc[-5].value)>0:
-            out["pat_yoy"]=float(pat.iloc[-1].value)/float(pat.iloc[-5].value)-1
-    if cfo is not None and len(cfo)>=4 and out.get("pat_ttm") is not None:
-        out["cfo_ttm"]=float(cfo.tail(4).value.sum())
+    pat=out.get("pat"); cfo=out.get("cfo"); ebit=out.get("ebit"); eps=out.get("eps")
+    if pat is not None:
+        out["pat_ttm"]=float(pat.tail(4).value.sum()) if len(pat)>=4 else float(pat.iloc[-1].value)
+        if len(pat)>=5 and float(pat.iloc[-5].value)>0: out["pat_yoy"]=float(pat.iloc[-1].value)/float(pat.iloc[-5].value)-1
+        elif len(pat)>=2 and float(pat.iloc[-2].value)>0: out["pat_yoy"]=float(pat.iloc[-1].value)/float(pat.iloc[-2].value)-1
+    if cfo is not None and out.get("pat_ttm") is not None:
+        out["cfo_ttm"]=float(cfo.tail(4).value.sum()) if len(cfo)>=4 else float(cfo.iloc[-1].value)
         if out["pat_ttm"]!=0: out["cfo_pat"]=out["cfo_ttm"]/out["pat_ttm"]
-    if ebit is not None and len(ebit)>=4: out["ebit_ttm"]=float(ebit.tail(4).value.sum())
+    if ebit is not None: out["ebit_ttm"]=float(ebit.tail(4).value.sum()) if len(ebit)>=4 else float(ebit.iloc[-1].value)
+    if eps is not None and len(eps): out["eps_latest"]=float(eps.iloc[-1].value)
     return {k:v for k,v in out.items() if not isinstance(v,pd.DataFrame)}
 
 def _score(df):
@@ -186,7 +187,7 @@ def run(start_year=2019,end_year=2024):
     for _,r in cand.iterrows():
         f=_snapshot(mm.get(r.symbol,[]),datetime.combine(pd.Timestamp(r.rebalance_date).date(),time(15,30)))
         price=r.adj_close; shares=f.get("shares")
-        f["pe"]=(price*shares)/f["pat_ttm"] if shares and price and f.get("pat_ttm",0)>0 else None
+        f["pe"]=(price/f["eps_latest"]) if price and f.get("eps_latest") and f.get("eps_latest")>0 else ((price*shares)/f["pat_ttm"] if shares and price and f.get("pat_ttm",0)>0 else None)
         invested=(f.get("debt",0) or 0)+(f.get("equity",0) or 0)-(f.get("cash",0) or 0)
         f["roic"]=f.get("ebit_ttm")/invested if invested>0 and f.get("ebit_ttm") is not None else None
         f["balance"]=f.get("debt")/f.get("equity") if f.get("equity") not in (None,0) else None
