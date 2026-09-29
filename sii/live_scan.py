@@ -96,7 +96,7 @@ def _financial_features(metrics, close, shares):
         out["roic_proxy"]=float(out["ebit_ttm"]/invested)
     return out
 
-def run(top_financial=20, rank_max=500):
+def run(top_financial=50, rank_max=500):
     con=_duckdb()
     price_paths=[f"{HF}/prices_adjusted/{ex}_{y}.parquet" for ex in ("nse","bse") for y in (2025,2026)]
     nse_raw_paths=[f"{HF}/nse/year={y}/nse_{y}.parquet" for y in (2025,2026)]
@@ -281,7 +281,7 @@ def run(top_financial=20, rank_max=500):
     out[["sii_score","evidence_coverage","bucket","firewall"]]=pd.DataFrame(scores,index=out.index)
     out=out.sort_values(["bucket","sii_score","technical_score"],ascending=[True,False,False])
     # Only names with complete-ish evidence and no hard firewall can be promoted.
-    promoted=out[(out["bucket"]=="HIGH_PRIORITY") & (out["evidence_coverage"]>=.80) & (out["firewall"]=="")].head(20)
+    # Prospective-candidate funnel: strong current signal is surfaced even when the full\n    # six-module evidence gate is not yet satisfied. This is a research queue, not a buy signal.\n    prospective=out[(out["sii_score"]>=55) & (out["evidence_coverage"]>=.65) & (out["firewall"]=="")].head(20).copy()\n    verification=prospective.apply(lambda r: {\n        "valuation": "PASS" if pd.notna(r.get("pe")) and 0 < float(r.get("pe")) <= 40 else "VERIFY",\n        "earnings": "PASS" if pd.notna(r.get("pat_yoy")) and float(r.get("pat_yoy")) > 0 else "FAIL",\n        "cash_conversion": "PASS" if pd.notna(r.get("cfo_pat")) and float(r.get("cfo_pat")) >= 0.8 else "VERIFY",\n        "roic": "PASS" if pd.notna(r.get("roic_proxy")) and float(r.get("roic_proxy")) >= 0.12 else "VERIFY",\n        "balance_sheet": "PASS" if pd.notna(r.get("debt_equity")) and float(r.get("debt_equity")) <= 1.5 else "VERIFY",\n        "industry_catalyst": "VERIFY"\n    }, axis=1) if not prospective.empty else pd.DataFrame()\n    if not prospective.empty:\n        for k in ["valuation","earnings","cash_conversion","roic","balance_sheet","industry_catalyst"]: prospective["verify_"+k]=[x[k] for x in verification]\n        prospective["verification_status"]=prospective.apply(lambda r: "INVESTABLE_CANDIDATE" if all(r.get("verify_"+k)=="PASS" for k in ["valuation","earnings","cash_conversion","roic","balance_sheet","industry_catalyst"]) else "DUE_DILIGENCE",axis=1)\n    promoted=out[(out["bucket"]=="HIGH_PRIORITY") & (out["evidence_coverage"]>=.80) & (out["firewall"]=="")].head(20)
     cols=["exchange","symbol","name","isin","adj_close","technical_score","sii_score","evidence_coverage","bucket","firewall","pe","pat_yoy","cfo_pat","roic_proxy","debt_equity","rank"]
     result_rows=[]
     for _,r in promoted.iterrows():
