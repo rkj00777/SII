@@ -152,7 +152,18 @@ def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_
     symbols=sorted(cand.symbol.dropna().unique())
     ing=NSEFinancialIngestor()
     start=datetime(start_year-1,1,1);end=datetime(end_year,12,31,23,59,59)
-    metric_map={}\n    workers=max(2,min(8,int(os.getenv("SII_PIT_FETCH_WORKERS","6"))))\n    with ThreadPoolExecutor(max_workers=workers) as pool:\n        futures={pool.submit(_load_metrics,s,ing,start,end):s for s in symbols}\n        for fut in as_completed(futures):\n            s=futures[fut]\n            try: metric_map[s]=fut.result()\n            except Exception as exc:\n                metric_map[s]=[]\n                (CACHE/f"{s.replace('/','_')}.json").write_text(json.dumps({"status":"ERROR","error_type":type(exc).__name__,"error":str(exc)}))\n    metrics_loaded=sum(1 for v in metric_map.values() if v)\n    metrics_rows=sum(len(v) for v in metric_map.values())
+    metric_map={}
+    workers=max(2,min(8,int(os.getenv("SII_PIT_FETCH_WORKERS","6"))))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures={pool.submit(_load_metrics,s,ing,start,end):s for s in symbols}
+        for fut in as_completed(futures):
+            s=futures[fut]
+            try: metric_map[s]=fut.result()
+            except Exception as exc:
+                metric_map[s]=[]
+                (CACHE/f"{s.replace('/','_')}.json").write_text(json.dumps({"status":"ERROR","error_type":type(exc).__name__,"error":str(exc)}))
+    metrics_loaded=sum(1 for v in metric_map.values() if v)
+    metrics_rows=sum(len(v) for v in metric_map.values())
     rows=[]
     for _,r in cand.iterrows():
         d=pd.Timestamp(r.rebalance_date).date()
