@@ -23,8 +23,8 @@ jobs:
         run: python -m sii.runner
       - name: Run free fundamentals fallback
         env:
-          SII_BSE_PIT_MAX_SYMBOLS: "100"
-          SII_BSE_PIT_WORKERS: "8"
+          SII_BSE_PIT_MAX_SYMBOLS: "500"
+          SII_BSE_PIT_WORKERS: "10"
         run: python -m sii.bse_pit_validation
       - name: Run six-module empirical validation
         run: python -m sii.six_module_empirical_validation
