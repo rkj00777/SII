@@ -186,7 +186,7 @@ def run(start_year=2019,end_year=2024,rank_max=None,candidate_pool=None,horizon_
           "status":"OK","observations":int(len(df)),"selected_observations":0,
           "fundamental_coverage_rate":float((df.fundamental_coverage>=.80).mean()) if len(df) else 0.0,
           "validation_type":"PIT_fundamental_selection","production_ready":False,
-          "reason":"No historical observations met 80% verified fundamental coverage",
+          "reason":"No historical observations met 70% verified fundamental coverage",
           "symbols_considered":int(len(symbols)),
           "symbols_with_metrics":int(metrics_loaded),
           "metric_rows_loaded":int(metrics_rows),
