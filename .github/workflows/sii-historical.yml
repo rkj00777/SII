@@ -59,7 +59,8 @@ jobs:
           SII_END_YEAR: ${{ inputs.end_year || '2024' }}
           SII_PIT_RANK_MAX: 500
           SII_PIT_CANDIDATE_POOL: 100
-          SII_PIT_MAX_SYMBOLS: 0
+          SII_PIT_FETCH_WORKERS: 8
+          SII_PIT_MAX_SYMBOLS: 160
         run: |
           set +e
           python -m sii.pit_fundamental_backtest 2>&1 | tee artifacts/pit_run.log
