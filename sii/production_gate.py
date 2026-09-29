@@ -37,6 +37,8 @@ def run():
       "timestamp_utc":datetime.utcnow().isoformat(),
       "engine":"SII-v4.0.0-FREE-ONLY",
       "operational_production_ready":bool(operational),
+      "system_ready_for_live_operation":bool(operational),
+      "research_validation_pending":bool(not (pit_ready and six_ready)),
       "empirical_selection_validation_ready":bool(pit_ready and six_ready),
       "five_module_empirical_validation_ready":bool(pit_ready),
       "full_six_module_empirical_validation_ready":bool(six_ready),
@@ -52,7 +54,7 @@ def run():
         "independent_era_falsification":"PASS" if positive_eras>=2 else "OPEN",
         "six_module_empirical_validation":"PASS" if six_ready else "OPEN"
       },
-      "definition":"Operational production ready means the engine can run unattended, free-only, PIT-aware, evidence-gated and firewall-protected. It does not claim that the six-module fundamental selector has passed multi-year PIT falsification."
+      "definition":"System-ready means unattended free-only live operation is operational and evidence-gated. Historical PIT/fundamental and six-module falsification is a separate research-validation gate and must never be represented as passed until empirically demonstrated."
     }
     out.mkdir(exist_ok=True)
     (out/"production_gate_report.json").write_text(json.dumps(report,indent=2,default=str))
