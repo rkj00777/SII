@@ -115,9 +115,10 @@ def _snapshot(metrics, asof):
     df=df[df.available_at.notna() & (df.available_at<=pd.Timestamp(asof)) & (df.period_end<=pd.Timestamp(asof))]
     if df.empty:return {}
     df=df.sort_values(["metric","period_end","available_at"]).drop_duplicates(["metric","period_end"],keep="last")
-    q=df[pd.to_numeric(df.get("duration_days"),errors="coerce").between(70,125)].copy()
+    dur=pd.to_numeric(df.get("duration_days"),errors="coerce")
+    q=df[dur.between(70,125) | dur.between(300,380)].copy()
     out={}
-    for m in ("revenue","pat","ebit","cfo"):
+    for m in ("revenue","pat","ebit","cfo","eps"):
         z=q[q.metric==m].sort_values("period_end")
         if not z.empty: out[m]=z
     for m in ("debt","cash","equity","shares"):
