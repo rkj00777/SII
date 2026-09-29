@@ -390,3 +390,5 @@ def run(top_financial=50, rank_max=500):
 
 if __name__=="__main__":
     print(json.dumps(run(),indent=2,default=str))
+
+# live-gate refresh 2026-09-29
