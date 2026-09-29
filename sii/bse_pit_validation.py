@@ -51,8 +51,13 @@ def _hf_reconstructed_rows(symbol, start, end):
     root=CACHE/"hf_cc0"; root.mkdir(parents=True,exist_ok=True); index=root/"tree.json"
     try:
         if not index.exists():
-            u="https://huggingface.co/api/datasets/AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset/tree/main?recursive=true&expand=false"
-            rr=requests.get(u,timeout=30); rr.raise_for_status(); index.write_text(rr.text)
+            try:
+                from huggingface_hub import HfApi
+                tree=[{"path":x.path,"type":x.type} for x in HfApi().list_repo_tree("AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset",repo_type="dataset",recursive=True)]
+                index.write_text(json.dumps(tree))
+            except Exception:
+                u="https://huggingface.co/api/datasets/AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset/tree/main?recursive=true&expand=false&limit=10000"
+                rr=requests.get(u,timeout=60); rr.raise_for_status(); index.write_text(rr.text)
         tree=json.loads(index.read_text())
         files=[x.get("path","") for x in tree if str(x.get("type","file"))=="file"]
         matches=[x for x in files if x.lower().endswith(".json") and ("_"+str(symbol).upper()+"_" in x.upper() or "NSE_"+str(symbol).upper() in x.upper())]
