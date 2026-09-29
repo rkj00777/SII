@@ -3,45 +3,45 @@
   "validation_type": "BSE_PIT_fundamental_selection",
   "window": "2019-2024",
   "candidate_observations": 34500,
-  "selected_observations": 1308,
-  "fundamental_coverage_rate": 0.041855072463768114,
-  "selected_hit_100_rate": 0.4074923547400612,
+  "selected_observations": 101,
+  "fundamental_coverage_rate": 0.002927536231884058,
+  "selected_hit_100_rate": 0.31683168316831684,
   "candidate_hit_100_rate": 0.35982608695652174,
-  "selection_lift_100": 1.1324702947101748,
+  "selection_lift_100": 0.8805133775823208,
   "independent_era_falsification": [
     {
       "era": "2019-2020",
-      "selected_observations": 433,
+      "selected_observations": 0,
       "candidate_observations": 12000,
-      "selected_hit_100_rate": 0.394919168591224,
+      "selected_hit_100_rate": null,
       "candidate_hit_100_rate": 0.438,
-      "selection_lift_100": 0.9016419374228859
+      "selection_lift_100": null
     },
     {
       "era": "2021-2022",
-      "selected_observations": 455,
+      "selected_observations": 0,
       "candidate_observations": 12000,
-      "selected_hit_100_rate": 0.46153846153846156,
+      "selected_hit_100_rate": null,
       "candidate_hit_100_rate": 0.32658333333333334,
-      "selection_lift_100": 1.4132333601585962
+      "selection_lift_100": null
     },
     {
       "era": "2023-2024",
-      "selected_observations": 420,
+      "selected_observations": 101,
       "candidate_observations": 10500,
-      "selected_hit_100_rate": 0.3619047619047619,
+      "selected_hit_100_rate": 0.31683168316831684,
       "candidate_hit_100_rate": 0.30847619047619046,
-      "selection_lift_100": 1.173201605433776
+      "selection_lift_100": 1.027086345559533
     }
   ],
-  "independent_era_positive_lifts": 2,
+  "independent_era_positive_lifts": 1,
   "symbols_considered": 100,
-  "symbols_with_metrics": 54,
+  "symbols_with_metrics": 85,
   "lookahead_checks": {
     "filing_available_at_lte_decision": true,
     "future_revisions_excluded": true,
     "price_entry_after_rebalance": true
   },
   "production_ready": false,
-  "source": "BSE public financial-result/XBRL filings + NSE historical prices; true filing-timestamp PIT"
+  "source": "BSE + NSE public historical financial-result/XBRL filings + NSE historical prices; true filing-timestamp PIT"
 }

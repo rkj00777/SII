@@ -23,48 +23,48 @@
       "source": "PIT fundamental selector"
     },
     "industry_catalyst": {
-      "historical_status": "EMPIRICALLY_TESTED",
+      "historical_status": "NOT_VALIDATED_LOW_EVIDENCE",
       "source": "NSE corporate-announcements API",
-      "selected_observations_tested": 1308,
-      "evidence_rate": 0.9747706422018348,
-      "catalyst_positive_100pct_rate": 0.41411764705882353,
-      "base_selected_100pct_rate": 0.4074923547400612,
-      "catalyst_lift_100": 1.0162586910936982,
+      "selected_observations_tested": 101,
+      "evidence_rate": 0.9900990099009901,
+      "catalyst_positive_100pct_rate": 0.32,
+      "base_selected_100pct_rate": 0.31683168316831684,
+      "catalyst_lift_100": 1.01,
       "lookahead_rule": "announcement dissemination timestamp <= decision timestamp"
     }
   },
-  "modules_empirically_tested": 6,
+  "modules_empirically_tested": 5,
   "modules_total": 6,
-  "module_coverage": 1.0,
-  "sixth_module_historical_evidence_available": true,
+  "module_coverage": 0.8333333333333334,
+  "sixth_module_historical_evidence_available": false,
   "pit_selector_status": "OK",
-  "selected_observations": 1308,
-  "fundamental_coverage_rate": 0.041855072463768114,
-  "selection_lift_100": 1.1324702947101748,
+  "selected_observations": 101,
+  "fundamental_coverage_rate": 0.002927536231884058,
+  "selection_lift_100": 0.8805133775823208,
   "independent_eras": [
     {
       "era": "2019-2020",
-      "selected_observations": 433,
+      "selected_observations": 0,
       "candidate_observations": 12000,
-      "selected_hit_100_rate": 0.394919168591224,
+      "selected_hit_100_rate": null,
       "candidate_hit_100_rate": 0.438,
-      "selection_lift_100": 0.9016419374228859
+      "selection_lift_100": null
     },
     {
       "era": "2021-2022",
-      "selected_observations": 455,
+      "selected_observations": 0,
       "candidate_observations": 12000,
-      "selected_hit_100_rate": 0.46153846153846156,
+      "selected_hit_100_rate": null,
       "candidate_hit_100_rate": 0.32658333333333334,
-      "selection_lift_100": 1.4132333601585962
+      "selection_lift_100": null
     },
     {
       "era": "2023-2024",
-      "selected_observations": 420,
+      "selected_observations": 101,
       "candidate_observations": 10500,
-      "selected_hit_100_rate": 0.3619047619047619,
+      "selected_hit_100_rate": 0.31683168316831684,
       "candidate_hit_100_rate": 0.30847619047619046,
-      "selection_lift_100": 1.173201605433776
+      "selection_lift_100": 1.027086345559533
     }
   ],
   "lookahead_clean": true,
