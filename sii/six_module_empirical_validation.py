@@ -24,7 +24,18 @@ def _pit():
 
 def _selected():
     p=Path("artifacts/pit_fundamental_selected.csv")
+    if p.exists(): return pd.read_csv(p)
+    p=Path("artifacts/bse_pit_selected.csv")
     return pd.read_csv(p) if p.exists() else pd.DataFrame()
+
+def _pit_source():
+    p=Path("artifacts/pit_fundamental_backtest.json")
+    n=json.loads(p.read_text()) if p.exists() else {}
+    b=Path("artifacts/bse_pit_fundamental_validation.json")
+    if b.exists():
+        x=json.loads(b.read_text())
+        if x.get("selected_observations",0)>n.get("selected_observations",0): return x
+    return n
 
 def _available(r):
     for k in ("exchdisstime","an_dt","sort_date","broadcastDateTime","broadcastDate"):
@@ -55,7 +66,7 @@ def _fetch(symbol,start,end,adapter):
         return []
 
 def run():
-    pit=_pit(); sel=_selected()
+    pit=_pit_source(); sel=_selected()
     modules={k:{"historical_status":"EMPIRICALLY_TESTED","source":"PIT fundamental selector"}
              for k in ("valuation_gap","earnings_acceleration","cash_conversion",
                        "reinvestment_roic","governance_balance_sheet")}
