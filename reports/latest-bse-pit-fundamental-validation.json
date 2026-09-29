@@ -1,12 +1,7 @@
 {
-  "status": "OK",
+  "status": "ERROR",
   "validation_type": "BSE_PIT_fundamental_selection",
-  "candidate_observations": 34500,
-  "selected_observations": 0,
-  "fundamental_coverage_rate": 0.0,
-  "symbols_considered": 100,
-  "symbols_with_metrics": 0,
-  "reason": "BSE PIT reconstruction produced no observations at the 70% evidence threshold.",
-  "production_ready": false,
-  "fallback_track": "HF_CC0_RECONSTRUCTED"
+  "error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/SII/SII/sii/bse_pit_validation.py\", line 247, in <module>\n    try: print(json.dumps(run(),indent=2,default=str))\n                          ^^^^^\n  File \"/home/runner/work/SII/SII/sii/bse_pit_validation.py\", line 203, in run\n    f[\"balance\"]=f.get(\"debt\")/f.get(\"equity\") if f.get(\"equity\") not in (None,0) else None\n                 ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~\nTypeError: unsupported operand type(s) for /: 'NoneType' and 'float'\n",
+  "production_ready": false
 }
