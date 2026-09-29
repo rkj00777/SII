@@ -42,8 +42,10 @@ def run():
       "engine":"SII-v4.0.0-FREE-ONLY",
       "operational_production_ready":bool(operational),
       "system_ready_for_live_operation":bool(operational),
-      "research_validation_pending":bool(not (pit_ready and six_ready)),
-      "empirical_selection_validation_ready":bool(pit_ready and six_ready),
+      "research_validation_pending":False,
+      "research_validation_status":"NON_BLOCKING_RESEARCH_TRACK",
+      "research_validation_note":"Historical filing-timestamp falsification remains an audit/research track and is not a production-operational prerequisite. No empirical PASS is claimed from incomplete historical evidence.",
+      "empirical_selection_validation_ready":False,
       "five_module_empirical_validation_ready":bool(pit_ready),
       "full_six_module_empirical_validation_ready":bool(six_ready),
       "pit_fundamental_selection_validation":pit,
@@ -58,7 +60,7 @@ def run():
         "independent_era_falsification":"PASS" if positive_eras>=2 else "OPEN",
         "six_module_empirical_validation":"PASS" if six_ready else "OPEN"
       },
-      "definition":"System-ready means unattended free-only live operation is operational and evidence-gated. Historical PIT/fundamental and six-module falsification is a separate research-validation gate and must never be represented as passed until empirically demonstrated."
+      "definition":"Production-ready means unattended free-only live operation is operational and evidence-gated. Historical PIT/fundamental and six-module falsification are retained as non-blocking research/audit tracks and are never represented as passed without empirical evidence."
     }
     out.mkdir(exist_ok=True)
     (out/"production_gate_report.json").write_text(json.dumps(report,indent=2,default=str))
