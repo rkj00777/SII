@@ -51,30 +51,30 @@ def _financial_features(metrics, close, shares):
     def series(metric):
         x=q[q.metric==metric].sort_values("period_end").drop_duplicates("period_end", keep="last")
         return x
-    for metric in ("revenue","pat","ebit","cfo"):
+    for metric in ("revenue","pat","ebit","cfo","eps"):
         x=series(metric)
         if not x.empty:
             out[metric+"_q"]=x
     pat=out.get("pat_q")
     cfo=out.get("cfo_q")
     ebit=out.get("ebit_q")
+    eps=out.get("eps_q")
+    def annual_only(x):
+        return x is not None and len(x)>0 and pd.to_numeric(x["duration_days"],errors="coerce").ge(300).all()
     if pat is not None and len(pat):
-        p=pat.tail(4)["value"].sum() if len(pat)>=4 else pat.iloc[-1]["value"]
-        out["pat_ttm"]=float(p)
-        if len(pat)>=5:
-            prior=pat.iloc[-5]["value"]; latest=pat.iloc[-1]["value"]
-        elif len(pat)>=2:
+        out["pat_ttm"]=float(pat.iloc[-1]["value"]) if annual_only(pat) else float(pat.tail(4)["value"].sum())
+        if len(pat)>=2:
             prior=pat.iloc[-2]["value"]; latest=pat.iloc[-1]["value"]
-        else:
-            prior=latest=None
-        if prior and prior>0: out["pat_yoy"]=float(latest/prior-1)
+            if prior and prior>0: out["pat_yoy"]=float(latest/prior-1)
+    if eps is not None and len(eps):
+        out["eps_latest"]=float(eps.iloc[-1]["value"])
     if cfo is not None and out.get("pat_ttm") is not None:
         c=cfo.tail(4)["value"].sum() if len(cfo)>=4 else cfo.iloc[-1]["value"]
         out["cfo_ttm"]=float(c)
         if out["pat_ttm"] != 0:
             out["cfo_pat"]=float(c/out["pat_ttm"])
     if ebit is not None and len(ebit):
-        out["ebit_ttm"]=float(ebit.tail(4)["value"].sum()) if len(ebit)>=4 else float(ebit.iloc[-1]["value"])
+        out["ebit_ttm"]=float(ebit.iloc[-1]["value"]) if annual_only(ebit) else float(ebit.tail(4)["value"].sum())
     # Latest instant balance-sheet facts.
     instant=df[(df["metric"].isin(["debt","cash","equity","shares"]))].sort_values("period_end")
     latest={}
@@ -84,8 +84,10 @@ def _financial_features(metrics, close, shares):
     out.update(latest)
     if close and shares:
         out["market_cap"]=float(close*shares)
-        if out.get("pat_ttm") and out["pat_ttm"]>0:
-            out["pe"]=float(out["market_cap"]/out["pat_ttm"])
+    # Prefer disclosed EPS for P/E. Share-count/PAT units vary across XBRL issuers,
+    # so never create an apparently precise P/E from mismatched units.
+    if close and out.get("eps_latest") and out["eps_latest"]>0:
+        out["pe"]=float(close/out["eps_latest"])
     debt=out.get("debt",0.0); equity=out.get("equity")
     if equity is not None and equity>0:
         out["debt_equity"]=float(debt/equity)
