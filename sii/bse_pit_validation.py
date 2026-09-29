@@ -45,36 +45,67 @@ def _map_symbol(symbol, adapter):
     except Exception:
         return None
 
+def _hf_reconstructed_rows(symbol, start, end):
+    """Free CC0 fallback. Historical fundamentals are reconstructed; this is not filing-timestamp PIT."""
+    import requests, re
+    root=CACHE/"hf_cc0"; root.mkdir(parents=True,exist_ok=True); index=root/"tree.json"
+    try:
+        if not index.exists():
+            u="https://huggingface.co/api/datasets/AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset/tree/main?recursive=true&expand=false"
+            rr=requests.get(u,timeout=30); rr.raise_for_status(); index.write_text(rr.text)
+        tree=json.loads(index.read_text())
+        files=[x.get("path","") for x in tree if str(x.get("type","file"))=="file"]
+        matches=[x for x in files if x.lower().endswith(".json") and ("_"+str(symbol).upper()+"_" in x.upper() or "NSE_"+str(symbol).upper() in x.upper())]
+        if not matches: return []
+        matches=sorted(matches,key=lambda x: ("week_35" not in x, "week_34" not in x, len(x)))
+        url="https://huggingface.co/datasets/AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset/resolve/main/"+matches[0]
+        rr=requests.get(url,timeout=60); rr.raise_for_status(); data=rr.json(); rows=[]
+        def num(v):
+            try:
+                if v in (None,"","-"): return None
+                return float(str(v).replace(",","").replace("%","").replace("₹","").strip())
+            except Exception: return None
+        def add(block, y, label, metric):
+            ys=block.get("year",[]); vals=block.get("data",{}).get(label,[])
+            if y not in ys or label not in block.get("data",{}): return
+            i=ys.index(y); val=num(vals[i] if i<len(vals) else None); pe=pd.to_datetime(y,format="%b %Y",errors="coerce")
+            if val is None or pd.isna(pe): return
+            av=pe+pd.Timedelta(days=120)
+            rows.append({"metric":metric,"value":val,"unit":"INR_CRORE","period_end":pe.to_pydatetime(),"period_start":None,"duration_days":365,"available_at":av.to_pydatetime(),"source_url":url,"source_type":"HF_CC0_RECONSTRUCTED","symbol":symbol,"availability_quality":"proxy_not_filing_timestamp"})
+        pl=data.get("profit_loss",{}); bs=data.get("balance_sheet",{}); cf=data.get("cash_flows",{})
+        for y in pl.get("year",[]):
+            add(pl,y,"Sales +","revenue"); add(pl,y,"Net Profit +","pat"); add(pl,y,"Operating Profit","ebit")
+        for y in cf.get("year",[]): add(cf,y,"Cash from Operating Activity +","cfo")
+        for y in bs.get("year",[]): add(bs,y,"Borrowings +","debt")
+        for y in bs.get("year",[]):
+            ys=bs.get("year",[]); i=ys.index(y); pe=pd.to_datetime(y,format="%b %Y",errors="coerce")
+            vals=bs.get("data",{}); eq=num(vals.get("Equity Capital",[])[i] if i<len(vals.get("Equity Capital",[])) else None); res=num(vals.get("Reserves",[])[i] if i<len(vals.get("Reserves",[])) else None)
+            if eq is not None and res is not None:
+                av=pe+pd.Timedelta(days=120); rows.append({"metric":"equity","value":eq+res,"unit":"INR_CRORE","period_end":pe.to_pydatetime(),"period_start":None,"duration_days":365,"available_at":av.to_pydatetime(),"source_url":url,"source_type":"HF_CC0_RECONSTRUCTED","symbol":symbol,"availability_quality":"proxy_not_filing_timestamp"})
+        return rows
+    except Exception: return []
+
 def _load(symbol, start, end):
-    p=CACHE/f"{str(symbol).replace('/','_')}.json"
+    p=CACHE/f"{str(symbol).replace("/","_")}.json"
     if p.exists():
         try:
             x=json.loads(p.read_text())
             if isinstance(x,list) and x: return x
         except Exception: pass
-    adapter=BSEAdapter(); code=_map_symbol(symbol,adapter)
-    if not code: return []
-    ing=BSEFinancialIngestor()
-    try:
-        cat=ing.catalog(code,start,end,max_pages=12)
-        rows=[]
-        for f in cat.get("rows",[]):
-            av=f.get("available_at")
-            if av is not None and pd.isna(_dt(av)): continue
-            # BSE announcement rows do not reliably expose the accounting
-            # period in QUARTER_ID. Parse the XBRL first and filter the actual
-            # reported period from the facts.
-            parsed=ing.parse_document(f)
-            if parsed.get("status")=="OK":
-                for mr in parsed.get("rows",[]):
-                    pe=_dt(mr.get("period_end"))
-                    if pd.isna(pe) or pe<start or pe>end: continue
-                    rows.append(mr)
-        p.write_text(json.dumps(rows,default=str))
-        return rows
-    except Exception as e:
-        p.write_text(json.dumps({"error":str(e)}))
-        return []
+    adapter=BSEAdapter(); code=_map_symbol(symbol,adapter); ing=BSEFinancialIngestor(); rows=[]
+    if code:
+        try:
+            cat=ing.catalog(code,start,end,max_pages=12)
+            for f in cat.get("rows",[]):
+                parsed=ing.parse_document(f)
+                if parsed.get("status")=="OK":
+                    for mr in parsed.get("rows",[]):
+                        pe=_dt(mr.get("period_end"))
+                        if pd.isna(pe) or pe<start or pe>end: continue
+                        rows.append(mr)
+        except Exception: rows=[]
+    if not rows: rows=_hf_reconstructed_rows(symbol,start,end)
+    p.write_text(json.dumps(rows,default=str)); return rows
 
 def _snapshot(metrics, asof):
     if not metrics:return {}
@@ -137,7 +168,7 @@ def run(start_year=2019,end_year=2024):
         now=px.sort_values("date").groupby("symbol",as_index=False).tail(1)[["symbol","adj_close"]]
         old=px[px.date<=pd.Timestamp(d)-pd.Timedelta(days=126)].sort_values("date").groupby("symbol",as_index=False).tail(1)[["symbol","adj_close"]].rename(columns={"adj_close":"old_close"})
         x=g.merge(now,on="symbol",how="left").merge(old,on="symbol",how="left"); x["mom126"]=x.adj_close/x.old_close-1
-        rows.append(x.sort_values("mom126",ascending=False).head(40))
+        rows.append(x)
     cand=pd.concat(rows,ignore_index=True)
     symbols=sorted(uq.symbol.unique())
     max_symbols=int(os.getenv("SII_BSE_PIT_MAX_SYMBOLS","100"))
@@ -169,7 +200,7 @@ def run(start_year=2019,end_year=2024):
         report={"status":"OK","validation_type":"BSE_PIT_fundamental_selection","candidate_observations":len(df),"selected_observations":0,
           "fundamental_coverage_rate":float((df.fundamental_coverage>=.70).mean()) if len(df) else 0,
           "symbols_considered":len(symbols),"symbols_with_metrics":sum(bool(v) for v in mm.values()),
-          "reason":"BSE PIT reconstruction produced no observations at the 70% evidence threshold.","production_ready":False}
+          "reason":"BSE PIT reconstruction produced no observations at the 70% evidence threshold.","production_ready":False,"fallback_track":"HF_CC0_RECONSTRUCTED"}
         (OUT/"bse_pit_fundamental_validation.json").write_text(json.dumps(report,indent=2,default=str)); return report
     con=_duckdb(); q=f"""SELECT o.rebalance_date,o.symbol,o.adj_close,
       max(p.adj_close/o.adj_close-1) max_return
