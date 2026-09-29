@@ -11,10 +11,11 @@ from pathlib import Path
 import pandas as pd
 from .free_market import _duckdb, HF
 from .bse_financial import BSEFinancialIngestor
-from .adapters import BSEAdapter
+from .adapters import BSEAdapter, NSEAdapter
+from .financial_ingest import NSEFinancialIngestor
 
 OUT=Path(os.getenv("SII_OUTPUT_DIR","artifacts")); OUT.mkdir(exist_ok=True)
-CACHE=Path(os.getenv("SII_BSE_PIT_CACHE","artifacts/bse_pit_cache_v1")); CACHE.mkdir(parents=True,exist_ok=True)
+CACHE=Path(os.getenv("SII_BSE_PIT_CACHE","artifacts/bse_pit_cache_v2")); CACHE.mkdir(parents=True,exist_ok=True)
 
 def _dt(v):
     return pd.to_datetime(v,errors="coerce")
@@ -96,26 +97,37 @@ def _hf_reconstructed_rows(symbol, start, end):
     except Exception:return []
 
 def _load(symbol, start, end):
-    p=CACHE/f"{str(symbol).replace("/","_")}.json"
+    p=CACHE/f"{str(symbol).replace('/', '_')}.json"
     if p.exists():
         try:
             x=json.loads(p.read_text())
             if isinstance(x,list) and x: return x
         except Exception: pass
-    adapter=BSEAdapter(); code=_map_symbol(symbol,adapter); ing=BSEFinancialIngestor(); rows=[]
-    if code:
-        try:
+    rows=[]
+    try:
+        badapter=BSEAdapter(); code=_map_symbol(symbol,badapter)
+        if code:
+            ing=BSEFinancialIngestor()
             cat=ing.catalog(code,start,end,max_pages=12)
             for f in cat.get("rows",[]):
                 parsed=ing.parse_document(f)
-                if parsed.get("status")=="OK":
-                    for mr in parsed.get("rows",[]):
-                        pe=_dt(mr.get("period_end"))
-                        if pd.isna(pe) or pe<start or pe>end: continue
-                        rows.append(mr)
-        except Exception: rows=[]
+                if parsed.get("status")=="OK": rows.extend(parsed.get("rows",[]))
+    except Exception: pass
+    try:
+        ning=NSEFinancialIngestor()
+        cat=ning.catalog(symbol,start,end,page_size=100)
+        for f in cat.get("rows",[]):
+            parsed=ning.parse_document(f)
+            if parsed.get("status")=="OK": rows.extend(parsed.get("rows",[]))
+    except Exception: pass
     if not rows: rows=_hf_reconstructed_rows(symbol,start,end)
-    p.write_text(json.dumps(rows,default=str)); return rows
+    ded={}
+    for r in rows:
+        key=(r.get("metric"),str(r.get("period_end")),r.get("source_type"),r.get("source_url"))
+        if key not in ded: ded[key]=r
+    rows=list(ded.values())
+    p.write_text(json.dumps(rows,default=str))
+    return rows
 
 def _snapshot(metrics, asof):
     if not metrics:return {}
@@ -183,7 +195,7 @@ def run(start_year=2019,end_year=2024):
         rows.append(x)
     cand=pd.concat(rows,ignore_index=True)
     symbols=sorted(uq.symbol.unique())
-    max_symbols=int(os.getenv("SII_BSE_PIT_MAX_SYMBOLS","100"))
+    max_symbols=int(os.getenv("SII_BSE_PIT_MAX_SYMBOLS","500"))
     if len(symbols)>max_symbols:
         idx=[round(i*(len(symbols)-1)/(max_symbols-1)) for i in range(max_symbols)]
         symbols=[symbols[i] for i in sorted(set(idx))]
@@ -195,7 +207,8 @@ def run(start_year=2019,end_year=2024):
             mm[fs[f]]=f.result()
     out=[]
     for _,r in cand.iterrows():
-        f=_snapshot(mm.get(r.symbol,[]),datetime.combine(pd.Timestamp(r.rebalance_date).date(),time(15,30)))
+        raw_metrics=[m for m in mm.get(r.symbol,[]) if str(m.get("source_type","")).upper()!="HF_CC0_RECONSTRUCTED"]
+        f=_snapshot(raw_metrics,datetime.combine(pd.Timestamp(r.rebalance_date).date(),time(15,30)))
         price=r.adj_close; shares=f.get("shares")
         f["pe"]=(price/f["eps_latest"]) if price and f.get("eps_latest") and f.get("eps_latest")>0 else ((price*shares)/f["pat_ttm"] if shares and price and f.get("pat_ttm",0)>0 else None)
         invested=(f.get("debt",0) or 0)+(f.get("equity",0) or 0)-(f.get("cash",0) or 0)
@@ -211,7 +224,7 @@ def run(start_year=2019,end_year=2024):
     if sel.empty:
         report={"status":"OK","validation_type":"BSE_PIT_fundamental_selection","candidate_observations":len(df),"selected_observations":0,
           "fundamental_coverage_rate":float((df.fundamental_coverage>=.70).mean()) if len(df) else 0,
-          "symbols_considered":len(symbols),"symbols_with_metrics":sum(bool(v) for v in mm.values()),
+          "symbols_considered":len(symbols),"symbols_with_metrics":sum(any(str(m.get("source_type","")).upper()!="HF_CC0_RECONSTRUCTED" for m in v) for v in mm.values()),
           "reason":"BSE PIT reconstruction produced no observations at the 70% evidence threshold.","production_ready":False,"fallback_track":"HF_CC0_RECONSTRUCTED"}
         (OUT/"bse_pit_fundamental_validation.json").write_text(json.dumps(report,indent=2,default=str)); return report
     con=_duckdb(); q=f"""SELECT o.rebalance_date,o.symbol,o.adj_close,
@@ -238,7 +251,7 @@ def run(start_year=2019,end_year=2024):
       "symbols_considered":len(symbols),"symbols_with_metrics":sum(bool(v) for v in mm.values()),
       "lookahead_checks":{"filing_available_at_lte_decision":True,"future_revisions_excluded":True,"price_entry_after_rebalance":True},
       "production_ready":bool(len(sel)>=500 and (df.fundamental_coverage>=.70).mean()>=.70 and (sr/cr if cr else 0)>=1.05 and sum((e.get("selection_lift_100") or 0)>1 for e in eras)>=2),
-      "source":"BSE public financial-result/XBRL filings + NSE historical prices; true filing-timestamp PIT"}
+      "source":"BSE + NSE public historical financial-result/XBRL filings + NSE historical prices; true filing-timestamp PIT"}
     (OUT/"bse_pit_fundamental_validation.json").write_text(json.dumps(report,indent=2,default=str))
     sel.to_csv(OUT/"bse_pit_selected.csv",index=False)
     return report
