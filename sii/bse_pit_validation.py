@@ -48,20 +48,19 @@ def _map_symbol(symbol, adapter):
 def _hf_reconstructed_rows(symbol, start, end):
     """Free CC0 fallback. Historical fundamentals are reconstructed; this is not filing-timestamp PIT."""
     import requests, re
-    root=CACHE/"hf_cc0"; root.mkdir(parents=True,exist_ok=True); index=root/"tree.json"
+    root=CACHE/"hf_cc0"; root.mkdir(parents=True,exist_ok=True)
     try:
+        letter=str(symbol).strip()[:1].upper() if str(symbol).strip()[:1].isalpha() else "A"
+        index=root/("tree_"+letter+".json")
         if not index.exists():
-            try:
-                from huggingface_hub import HfApi
-                tree=[{"path":x.path,"type":x.type} for x in HfApi().list_repo_tree("AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset",repo_type="dataset",recursive=True)]
-                index.write_text(json.dumps(tree))
-            except Exception:
-                u="https://huggingface.co/api/datasets/AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset/tree/main?recursive=true&expand=false&limit=10000"
-                rr=requests.get(u,timeout=60); rr.raise_for_status(); index.write_text(rr.text)
+            u="https://huggingface.co/api/datasets/AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset/tree/main/"+letter+"?recursive=true&expand=false&limit=1000"
+            rr=requests.get(u,timeout=60); rr.raise_for_status(); index.write_text(rr.text)
         tree=json.loads(index.read_text())
         files=[x.get("path","") for x in tree if str(x.get("type","file"))=="file"]
         matches=[x for x in files if x.lower().endswith(".json") and ("_"+str(symbol).upper()+"_" in x.upper() or "NSE_"+str(symbol).upper() in x.upper())]
-        if not matches: return []
+        if not matches:
+            matches=[x for x in files if x.lower().endswith(".json") and str(symbol).upper() in x.upper()]
+        if not matches:return []
         matches=sorted(matches,key=lambda x: ("week_35" not in x, "week_34" not in x, len(x)))
         url="https://huggingface.co/datasets/AYUSHKHAIRE/indian-stocks-comprehensive-fundamentals-dataset/resolve/main/"+matches[0]
         rr=requests.get(url,timeout=60); rr.raise_for_status(); data=rr.json(); rows=[]
@@ -69,7 +68,7 @@ def _hf_reconstructed_rows(symbol, start, end):
             try:
                 if v in (None,"","-"): return None
                 return float(str(v).replace(",","").replace("%","").replace("₹","").strip())
-            except Exception: return None
+            except Exception:return None
         def add(block, y, label, metric):
             ys=block.get("year",[]); vals=block.get("data",{}).get(label,[])
             if y not in ys or label not in block.get("data",{}): return
@@ -79,7 +78,7 @@ def _hf_reconstructed_rows(symbol, start, end):
             rows.append({"metric":metric,"value":val,"unit":"INR_CRORE","period_end":pe.to_pydatetime(),"period_start":None,"duration_days":365,"available_at":av.to_pydatetime(),"source_url":url,"source_type":"HF_CC0_RECONSTRUCTED","symbol":symbol,"availability_quality":"proxy_not_filing_timestamp"})
         pl=data.get("profit_loss",{}); bs=data.get("balance_sheet",{}); cf=data.get("cash_flows",{})
         for y in pl.get("year",[]):
-            add(pl,y,"Sales +","revenue"); add(pl,y,"Net Profit +","pat"); add(pl,y,"Operating Profit","ebit")
+            add(pl,y,"Sales +","revenue"); add(pl,y,"Net Profit +","pat"); add(pl,y,"Operating Profit","ebit"); add(pl,y,"EPS in Rs","eps")
         for y in cf.get("year",[]): add(cf,y,"Cash from Operating Activity +","cfo")
         for y in bs.get("year",[]): add(bs,y,"Borrowings +","debt")
         for y in bs.get("year",[]):
@@ -87,8 +86,14 @@ def _hf_reconstructed_rows(symbol, start, end):
             vals=bs.get("data",{}); eq=num(vals.get("Equity Capital",[])[i] if i<len(vals.get("Equity Capital",[])) else None); res=num(vals.get("Reserves",[])[i] if i<len(vals.get("Reserves",[])) else None)
             if eq is not None and res is not None:
                 av=pe+pd.Timedelta(days=120); rows.append({"metric":"equity","value":eq+res,"unit":"INR_CRORE","period_end":pe.to_pydatetime(),"period_start":None,"duration_days":365,"available_at":av.to_pydatetime(),"source_url":url,"source_type":"HF_CC0_RECONSTRUCTED","symbol":symbol,"availability_quality":"proxy_not_filing_timestamp"})
+            # Cash is nested under Other Assets in the archive schedules.
+            sched=bs.get("schedules",{}); cash_block=sched.get("Other Assets",{}) if isinstance(sched,dict) else {}
+            cvals=cash_block.get("Cash Equivalents",{}) if isinstance(cash_block,dict) else {}
+            cv=num(cvals.get(y)) if isinstance(cvals,dict) else None
+            if cv is not None:
+                av=pe+pd.Timedelta(days=120); rows.append({"metric":"cash","value":cv,"unit":"INR_CRORE","period_end":pe.to_pydatetime(),"period_start":None,"duration_days":365,"available_at":av.to_pydatetime(),"source_url":url,"source_type":"HF_CC0_RECONSTRUCTED","symbol":symbol,"availability_quality":"proxy_not_filing_timestamp"})
         return rows
-    except Exception: return []
+    except Exception:return []
 
 def _load(symbol, start, end):
     p=CACHE/f"{str(symbol).replace("/","_")}.json"
