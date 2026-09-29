@@ -142,19 +142,30 @@ class NSEFinancialIngestor:
         # for the historical validation period.
         historical = bool(start and start.year < 2025)
         try:
-            if self.browser is None:
-                from .nse_browser import NSEBrowserCatalog
-                self.browser=NSEBrowserCatalog()
-
+            # Prefer the direct NSE API path. It does not require Playwright and
+            # avoids the Chromium/NSE ERR_HTTP2_PROTOCOL_ERROR failure seen in CI.
+            # Playwright remains a last-resort compatibility fallback only.
+            import json
             if historical:
+                payload={"index":"equities","period":"Quarterly","page":1,"size":page_size}
+                if symbol: payload["symbol"]=symbol
+                r=self.adapter.get("https://www.nseindia.com/api/corporates-financial-results",params=payload)
+                if r.status=="OK":
+                    data=json.loads(r.content.decode("utf-8"))
+                    rows=self._filter_filing_rows(extract_filing_rows(data),start,end)
+                    if rows:
+                        return {"status":"OK","rows":rows,"raw":data,"source":"legacy_financial_results_direct_api"}
+                    direct_detail="Direct legacy API returned no XBRL rows in requested window."
+                else:
+                    direct_detail=f"Direct legacy API status={r.status}"
+                # Last resort: browser.
+                if self.browser is None:
+                    from .nse_browser import NSEBrowserCatalog
+                    self.browser=NSEBrowserCatalog()
                 legacy=self.browser.fetch_legacy(symbol,period="Quarterly",start=None,end=None,page=1,size=page_size)
-                if legacy.get("status")!="OK":
-                    return {"status":legacy.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":legacy.get("detail")}
-                rows=extract_filing_rows(legacy.get("raw"))
-                rows=self._filter_filing_rows(rows,start,end)
-                if rows:
-                    return {"status":"OK","rows":rows,"raw":legacy.get("raw"),"source":"legacy_financial_results"}
-                return {"status":"NO_XBRL_ROWS","rows":[],"detail":"Legacy Financial Results returned no XBRL filings in requested historical window.","raw":legacy.get("raw")}
+                rows=self._filter_filing_rows(extract_filing_rows(legacy.get("raw")),start,end) if legacy.get("status")=="OK" else []
+                if rows:return {"status":"OK","rows":rows,"raw":legacy.get("raw"),"source":"legacy_financial_results_browser"}
+                return {"status":"NO_XBRL_ROWS","rows":[],"detail":f"{direct_detail}; browser fallback returned no rows"}
 
             payload={"type":"Integrated Filing- Financials","page":1,"size":page_size,"index":"equities","period_ended":"all"}
             if symbol: payload["symbol"]=symbol
@@ -162,14 +173,16 @@ class NSEFinancialIngestor:
             if start and end: payload["from_date"]=start.strftime("%d-%m-%Y"); payload["to_date"]=end.strftime("%d-%m-%Y")
             r=self.adapter.get("https://www.nseindia.com/api/integrated-filing-results",params=payload)
             if r.status=="OK":
-                import json
                 try:
                     data=json.loads(r.content.decode("utf-8")); rows=extract_filing_rows(data)
                     if rows: return {"status":"OK","rows":rows,"raw":data,"source":"integrated_filing"}
                 except Exception as ex:
-                    plain_error=f'plain catalog parse: {type(ex).__name__}: {ex}'
-            else:
-                plain_error='plain catalog returned no usable XBRL rows'
+                    plain_error=f"plain catalog parse: {type(ex).__name__}: {ex}"
+            else: plain_error=f"Direct integrated API status={r.status}"
+            # Browser compatibility fallback.
+            if self.browser is None:
+                from .nse_browser import NSEBrowserCatalog
+                self.browser=NSEBrowserCatalog()
             br=self.browser.fetch(symbol,start,end,page=1,size=page_size,issuer=issuer)
             if br.get("status")!="OK":
                 return {"status":br.get("status","DATA_UNAVAILABLE"),"rows":[],"detail":f"{plain_error}; {br.get('detail')}"}
@@ -177,8 +190,7 @@ class NSEFinancialIngestor:
             try:
                 legacy=self.browser.fetch_legacy(symbol,period="Quarterly",start=None,end=None)
                 legacy_rows=extract_filing_rows(legacy.get("raw")) if legacy.get("status")=="OK" else []
-            except Exception:
-                legacy_rows=[]
+            except Exception: legacy_rows=[]
             merged={ (x["xbrl_url"],str(x.get("period_end"))):x for x in legacy_rows+rows }
             merged=self._filter_filing_rows(list(merged.values()),start,end)
             if not merged:
