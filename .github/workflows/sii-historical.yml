@@ -1,7 +1,7 @@
 name: SII historical falsification
 concurrency:
   group: sii-historical-falsification
-  cancel-in-progress: true
+  cancel-in-progress: false
 on:
   push:
     branches: [main]
