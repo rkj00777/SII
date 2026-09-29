@@ -20,7 +20,10 @@
   "selection_rule": "Blind current NSE EQ/BE plus BSE A/B/T universe from free TejHQ EOD data; PIT liquidity rank retained as a secondary field; technical prefilter; latest NSE Integrated Filing XBRL enrichment; unknown modules remain unknown; hard firewall blocks promotion.",
   "production_mode": true,
   "validation_status": "Operational live mode; full historical fundamental-selection falsification remains a separate validation gate.",
-  "promoted": [
+  "promoted": [],
+  "promotion_count": 0,
+  "promotion_gate": "Six-module verification PASS + evidence_coverage >= 0.65 + no firewall",
+  "high_priority_research": [
     {
       "exchange": "BSE",
       "symbol": "FILATEX",
@@ -94,7 +97,7 @@
       "rank": 98
     }
   ],
-  "promotion_count": 4,
+  "high_priority_research_count": 4,
   "prospective_candidates": [
     {
       "exchange": "NSE",
@@ -118,7 +121,8 @@
       "verify_cash_conversion": "VERIFY",
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "VERIFY",
-      "verify_industry_catalyst": "VERIFY",
+      "verify_industry_catalyst": "PASS",
+      "catalyst_evidence_count": 8,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -143,7 +147,8 @@
       "verify_cash_conversion": "VERIFY",
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "VERIFY",
-      "verify_industry_catalyst": "VERIFY",
+      "verify_industry_catalyst": "PASS",
+      "catalyst_evidence_count": 7,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -168,7 +173,8 @@
       "verify_cash_conversion": "VERIFY",
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "VERIFY",
-      "verify_industry_catalyst": "VERIFY",
+      "verify_industry_catalyst": "PASS",
+      "catalyst_evidence_count": 8,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -193,7 +199,8 @@
       "verify_cash_conversion": "VERIFY",
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "VERIFY",
-      "verify_industry_catalyst": "VERIFY",
+      "verify_industry_catalyst": "PASS",
+      "catalyst_evidence_count": 13,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -219,6 +226,7 @@
       "verify_roic": "PASS",
       "verify_balance_sheet": "PASS",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -244,6 +252,7 @@
       "verify_roic": "PASS",
       "verify_balance_sheet": "PASS",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -269,6 +278,7 @@
       "verify_roic": "PASS",
       "verify_balance_sheet": "VERIFY",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -294,6 +304,7 @@
       "verify_roic": "PASS",
       "verify_balance_sheet": "PASS",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -319,6 +330,7 @@
       "verify_roic": "PASS",
       "verify_balance_sheet": "PASS",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -344,6 +356,7 @@
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "PASS",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -369,6 +382,7 @@
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "PASS",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -394,6 +408,7 @@
       "verify_roic": "PASS",
       "verify_balance_sheet": "PASS",
       "verify_industry_catalyst": "VERIFY",
+      "catalyst_evidence_count": 0,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -418,7 +433,8 @@
       "verify_cash_conversion": "VERIFY",
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "VERIFY",
-      "verify_industry_catalyst": "VERIFY",
+      "verify_industry_catalyst": "PASS",
+      "catalyst_evidence_count": 3,
       "verification_status": "DUE_DILIGENCE"
     },
     {
@@ -443,7 +459,8 @@
       "verify_cash_conversion": "VERIFY",
       "verify_roic": "VERIFY",
       "verify_balance_sheet": "VERIFY",
-      "verify_industry_catalyst": "VERIFY",
+      "verify_industry_catalyst": "PASS",
+      "catalyst_evidence_count": 22,
       "verification_status": "DUE_DILIGENCE"
     }
   ],
@@ -812,7 +829,7 @@
     }
   ],
   "limitations": [
-    "Industry/order-book/catalyst module is unknown unless separately evidenced.",
+    "Module 6 uses dated NSE/BSE corporate-announcement evidence; absence of evidence remains VERIFY rather than PASS.",
     "Valuation/fundamental scores are cross-sectional among the enriched subset, not analyst estimates.",
     "HF_CC0_RECONSTRUCTED is a current reconstructed fallback and is not filing-timestamp PIT.",
     "No paid data source or proprietary API is used."
