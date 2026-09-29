@@ -16,6 +16,7 @@ on:
       - 'sii/bse_universe.py'
       - 'sii/six_module_empirical_validation.py'
       - 'sii/bse_pit_validation.py'
+      - 'sii/adapters.py'
       - '.github/workflows/sii-historical.yml'
   schedule:
     - cron: '30 3 * * 0'
