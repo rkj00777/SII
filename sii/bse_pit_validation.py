@@ -139,8 +139,8 @@ def run(start_year=2019,end_year=2024):
         x=g.merge(now,on="symbol",how="left").merge(old,on="symbol",how="left"); x["mom126"]=x.adj_close/x.old_close-1
         rows.append(x.sort_values("mom126",ascending=False).head(40))
     cand=pd.concat(rows,ignore_index=True)
-    symbols=sorted(cand.symbol.unique())
-    max_symbols=int(os.getenv("SII_BSE_PIT_MAX_SYMBOLS","60"))
+    symbols=sorted(uq.symbol.unique())
+    max_symbols=int(os.getenv("SII_BSE_PIT_MAX_SYMBOLS","100"))
     if len(symbols)>max_symbols:
         idx=[round(i*(len(symbols)-1)/(max_symbols-1)) for i in range(max_symbols)]
         symbols=[symbols[i] for i in sorted(set(idx))]
