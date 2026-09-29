@@ -200,7 +200,7 @@ def run(start_year=2019,end_year=2024):
         f["pe"]=(price/f["eps_latest"]) if price and f.get("eps_latest") and f.get("eps_latest")>0 else ((price*shares)/f["pat_ttm"] if shares and price and f.get("pat_ttm",0)>0 else None)
         invested=(f.get("debt",0) or 0)+(f.get("equity",0) or 0)-(f.get("cash",0) or 0)
         f["roic"]=f.get("ebit_ttm")/invested if invested>0 and f.get("ebit_ttm") is not None else None
-        f["balance"]=f.get("debt")/f.get("equity") if f.get("equity") not in (None,0) else None
+        f["balance"]=(f.get("debt") or 0)/f.get("equity") if f.get("equity") not in (None,0) else None
         out.append({**r.to_dict(),**f})
     df=_score(pd.DataFrame(out))
     sel=[]
