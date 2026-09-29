@@ -46,7 +46,7 @@ def _financial_features(metrics, close, shares):
         return {}
     df["period_end"] = pd.to_datetime(df["period_end"], errors="coerce")
     df["duration_days"] = pd.to_numeric(df.get("duration_days"), errors="coerce")
-    q = df[(df["duration_days"].between(70,125, inclusive="both"))].copy()
+    q = df[(df["duration_days"].between(70,125, inclusive="both")) | (df["duration_days"].between(300,380, inclusive="both"))].copy()
     out={}
     def series(metric):
         x=q[q.metric==metric].sort_values("period_end").drop_duplicates("period_end", keep="last")
@@ -58,21 +58,23 @@ def _financial_features(metrics, close, shares):
     pat=out.get("pat_q")
     cfo=out.get("cfo_q")
     ebit=out.get("ebit_q")
-    if pat is not None and len(pat)>=4:
-        p=pat.tail(4)["value"].sum()
+    if pat is not None and len(pat):
+        p=pat.tail(4)["value"].sum() if len(pat)>=4 else pat.iloc[-1]["value"]
         out["pat_ttm"]=float(p)
         if len(pat)>=5:
-            prior=pat.iloc[-5]["value"]
-            latest=pat.iloc[-1]["value"]
-            if prior and prior>0:
-                out["pat_yoy"]=float(latest/prior-1)
-    if cfo is not None and len(cfo)>=4 and out.get("pat_ttm") is not None:
-        c=cfo.tail(4)["value"].sum()
+            prior=pat.iloc[-5]["value"]; latest=pat.iloc[-1]["value"]
+        elif len(pat)>=2:
+            prior=pat.iloc[-2]["value"]; latest=pat.iloc[-1]["value"]
+        else:
+            prior=latest=None
+        if prior and prior>0: out["pat_yoy"]=float(latest/prior-1)
+    if cfo is not None and out.get("pat_ttm") is not None:
+        c=cfo.tail(4)["value"].sum() if len(cfo)>=4 else cfo.iloc[-1]["value"]
         out["cfo_ttm"]=float(c)
         if out["pat_ttm"] != 0:
             out["cfo_pat"]=float(c/out["pat_ttm"])
-    if ebit is not None and len(ebit)>=4:
-        out["ebit_ttm"]=float(ebit.tail(4)["value"].sum())
+    if ebit is not None and len(ebit):
+        out["ebit_ttm"]=float(ebit.tail(4)["value"].sum()) if len(ebit)>=4 else float(ebit.iloc[-1]["value"])
     # Latest instant balance-sheet facts.
     instant=df[(df["metric"].isin(["debt","cash","equity","shares"]))].sort_values("period_end")
     latest={}
