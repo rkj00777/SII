@@ -2,7 +2,7 @@
   "status": "OK",
   "observations": 34500,
   "decision_months": 69,
-  "observable_cutoff": "2024-09-02",
+  "observable_cutoff": "2024-09-04",
   "universe_rank_max": 500,
   "horizon_days": 756,
   "hit_100": 12414,

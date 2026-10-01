@@ -25,11 +25,11 @@
     "industry_catalyst": {
       "historical_status": "NOT_VALIDATED_LOW_EVIDENCE",
       "source": "NSE corporate-announcements API",
-      "selected_observations_tested": 101,
-      "evidence_rate": 0.9900990099009901,
-      "catalyst_positive_100pct_rate": 0.32,
-      "base_selected_100pct_rate": 0.31683168316831684,
-      "catalyst_lift_100": 1.01,
+      "selected_observations_tested": 299,
+      "evidence_rate": 0.9899665551839465,
+      "catalyst_positive_100pct_rate": 0.21283783783783783,
+      "base_selected_100pct_rate": 0.22073578595317725,
+      "catalyst_lift_100": 0.9642199017199017,
       "lookahead_rule": "announcement dissemination timestamp <= decision timestamp"
     }
   },
@@ -38,9 +38,9 @@
   "module_coverage": 0.8333333333333334,
   "sixth_module_historical_evidence_available": false,
   "pit_selector_status": "OK",
-  "selected_observations": 101,
-  "fundamental_coverage_rate": 0.002927536231884058,
-  "selection_lift_100": 0.8805133775823208,
+  "selected_observations": 299,
+  "fundamental_coverage_rate": 0.021536231884057972,
+  "selection_lift_100": 0.6134513142729672,
   "independent_eras": [
     {
       "era": "2019-2020",
@@ -52,19 +52,19 @@
     },
     {
       "era": "2021-2022",
-      "selected_observations": 0,
+      "selected_observations": 13,
       "candidate_observations": 12000,
-      "selected_hit_100_rate": null,
+      "selected_hit_100_rate": 0.46153846153846156,
       "candidate_hit_100_rate": 0.32658333333333334,
-      "selection_lift_100": null
+      "selection_lift_100": 1.4132333601585962
     },
     {
       "era": "2023-2024",
-      "selected_observations": 101,
+      "selected_observations": 286,
       "candidate_observations": 10500,
-      "selected_hit_100_rate": 0.31683168316831684,
+      "selected_hit_100_rate": 0.2097902097902098,
       "candidate_hit_100_rate": 0.30847619047619046,
-      "selection_lift_100": 1.027086345559533
+      "selection_lift_100": 0.6800855828333445
     }
   ],
   "lookahead_clean": true,
