@@ -1,0 +1,68 @@
+{
+  "ledger_version": "SII-PAPER-TRADE-v1",
+  "created_date": "2026-10-01",
+  "engine": "SII-v4.0.0-FREE-ONLY",
+  "source_report_as_of": "2026-09-30",
+  "status": "PAPER_ONLY",
+  "note": "These are the four highest-priority SII research candidates from the 2026-09-30 live scan. They were not Investable Candidates; each remained DUE_DILIGENCE because at least one six-module verification was not PASS. Entries use the 2026-09-30 scan close/reference price and are not live execution prices.",
+  "trades": [
+    {
+      "id": "SII-PT-20261001-01",
+      "symbol": "BHAGERIA",
+      "name": "Bhageria Industries Limited",
+      "exchange": "BSE",
+      "entry_reference_date": "2026-09-30",
+      "entry_reference_price": 404.95,
+      "sii_score": 78.885,
+      "status": "OPEN_PAPER_TRADE",
+      "verification_status": "DUE_DILIGENCE",
+      "reason_pending": "Industry/catalyst verification"
+    },
+    {
+      "id": "SII-PT-20261001-02",
+      "symbol": "INDORAMA",
+      "name": "Indo Rama Synthetics (India) Ltd",
+      "exchange": "BSE",
+      "entry_reference_date": "2026-09-30",
+      "entry_reference_price": 100.6,
+      "sii_score": 78.6375,
+      "status": "OPEN_PAPER_TRADE",
+      "verification_status": "DUE_DILIGENCE",
+      "reason_pending": "Balance-sheet and industry/catalyst verification"
+    },
+    {
+      "id": "SII-PT-20261001-03",
+      "symbol": "WELCORP",
+      "name": "Welspun Corp Limited",
+      "exchange": "BSE",
+      "entry_reference_date": "2026-09-30",
+      "entry_reference_price": 2715.6,
+      "sii_score": 78.3,
+      "status": "OPEN_PAPER_TRADE",
+      "verification_status": "DUE_DILIGENCE",
+      "reason_pending": "Valuation and industry/catalyst verification"
+    },
+    {
+      "id": "SII-PT-20261001-04",
+      "symbol": "FILATEX",
+      "name": "Filatex India Ltd",
+      "exchange": "BSE",
+      "entry_reference_date": "2026-09-30",
+      "entry_reference_price": 107.71,
+      "sii_score": 76.23,
+      "status": "OPEN_PAPER_TRADE",
+      "verification_status": "DUE_DILIGENCE",
+      "reason_pending": "Industry/catalyst verification"
+    }
+  ],
+  "monitoring_fields": [
+    "current_price",
+    "return_pct",
+    "days_held",
+    "latest_sii_score",
+    "verification_status",
+    "catalyst_status",
+    "exit_reason"
+  ],
+  "exit_policy": "No automatic stop/target is assigned by this paper-trade ledger. Future SII runs determine whether a candidate remains eligible; a trade should not be treated as an investment recommendation unless the engine later promotes it to INVESTABLE_CANDIDATE."
+}
