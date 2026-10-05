@@ -1,13 +1,13 @@
 {
   "job": "bootstrap",
-  "started_at": "2026-10-02T18:44:04.557626",
-  "finished_at": "2026-10-02T18:44:17.524725",
+  "started_at": "2026-10-05T18:47:36.852510",
+  "finished_at": "2026-10-05T18:47:49.539155",
   "universe": {
-    "nse_main": 2593,
-    "nse_sme": 575,
+    "nse_main": 2614,
+    "nse_sme": 578,
     "bse_status": "DATA_UNAVAILABLE",
-    "eligible": 574,
-    "excluded": 1,
+    "eligible": 576,
+    "excluded": 2,
     "source_status": {
       "MAIN": "OK",
       "SME": "OK"
@@ -15,7 +15,7 @@
   },
   "bse_universe": {
     "status": "OK",
-    "as_of": "2026-10-02T18:44:16.045765",
+    "as_of": "2026-10-05T18:47:48.155937",
     "rows": 2691,
     "raw_rows": 2691,
     "source": "TejHQ BSE market-data fallback",
@@ -27,7 +27,7 @@
   },
   "tejhq_current_year_rows": 485718,
   "gate": {
-    "eligible_universe": 574,
+    "eligible_universe": 576,
     "market_rows": 0,
     "financial_rows": 0,
     "universe_coverage": 1.0,
