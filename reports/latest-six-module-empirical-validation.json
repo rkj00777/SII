@@ -25,11 +25,11 @@
     "industry_catalyst": {
       "historical_status": "NOT_VALIDATED_LOW_EVIDENCE",
       "source": "NSE corporate-announcements API",
-      "selected_observations_tested": 131,
-      "evidence_rate": 0.9923664122137404,
-      "catalyst_positive_100pct_rate": 0.18461538461538463,
-      "base_selected_100pct_rate": 0.183206106870229,
-      "catalyst_lift_100": 1.0076923076923077,
+      "selected_observations_tested": 110,
+      "evidence_rate": 0.990909090909091,
+      "catalyst_positive_100pct_rate": 0.1926605504587156,
+      "base_selected_100pct_rate": 0.19090909090909092,
+      "catalyst_lift_100": 1.0091743119266054,
       "lookahead_rule": "announcement dissemination timestamp <= decision timestamp"
     }
   },
@@ -38,9 +38,9 @@
   "module_coverage": 0.8333333333333334,
   "sixth_module_historical_evidence_available": false,
   "pit_selector_status": "OK",
-  "selected_observations": 131,
-  "fundamental_coverage_rate": 0.0037971014492753623,
-  "selection_lift_100": 0.5091518194798534,
+  "selected_observations": 110,
+  "fundamental_coverage_rate": 0.003188405797101449,
+  "selection_lift_100": 0.5305593391625292,
   "independent_eras": [
     {
       "era": "2019-2020",
@@ -52,19 +52,19 @@
     },
     {
       "era": "2021-2022",
-      "selected_observations": 0,
+      "selected_observations": 1,
       "candidate_observations": 12000,
-      "selected_hit_100_rate": null,
+      "selected_hit_100_rate": 1.0,
       "candidate_hit_100_rate": 0.32658333333333334,
-      "selection_lift_100": null
+      "selection_lift_100": 3.0620056136769582
     },
     {
       "era": "2023-2024",
-      "selected_observations": 131,
+      "selected_observations": 109,
       "candidate_observations": 10500,
-      "selected_hit_100_rate": 0.183206106870229,
+      "selected_hit_100_rate": 0.1834862385321101,
       "candidate_hit_100_rate": 0.30847619047619046,
-      "selection_lift_100": 0.5939067990544628
+      "selection_lift_100": 0.5948149134261056
     }
   ],
   "lookahead_clean": true,
