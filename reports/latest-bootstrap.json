@@ -1,7 +1,7 @@
 {
   "job": "bootstrap",
-  "started_at": "2026-11-04T23:51:36.942127",
-  "finished_at": "2026-11-04T23:51:51.864292",
+  "started_at": "2026-11-05T23:45:56.867113",
+  "finished_at": "2026-11-05T23:46:08.674246",
   "universe": {
     "nse_main": 2630,
     "nse_sme": 582,
@@ -15,9 +15,9 @@
   },
   "bse_universe": {
     "status": "OK",
-    "as_of": "2026-11-04T23:51:51.024585",
-    "rows": 2693,
-    "raw_rows": 2693,
+    "as_of": "2026-11-05T23:46:08.049499",
+    "rows": 2715,
+    "raw_rows": 2715,
     "source": "TejHQ BSE market-data fallback",
     "dedup_key": "ISIN",
     "notes": [
@@ -25,7 +25,7 @@
       "BSE scrip code and ISIN are retained for filing joins."
     ]
   },
-  "tejhq_current_year_rows": 561509,
+  "tejhq_current_year_rows": 567025,
   "gate": {
     "eligible_universe": 581,
     "market_rows": 0,
