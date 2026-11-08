@@ -25,10 +25,10 @@
     "industry_catalyst": {
       "historical_status": "NOT_VALIDATED_LOW_EVIDENCE",
       "source": "NSE corporate-announcements API",
-      "selected_observations_tested": 138,
+      "selected_observations_tested": 150,
       "evidence_rate": 1.0,
-      "catalyst_positive_100pct_rate": 0.09420289855072464,
-      "base_selected_100pct_rate": 0.09420289855072464,
+      "catalyst_positive_100pct_rate": 0.15333333333333332,
+      "base_selected_100pct_rate": 0.15333333333333332,
       "catalyst_lift_100": 1.0,
       "lookahead_rule": "announcement dissemination timestamp <= decision timestamp"
     }
@@ -38,33 +38,33 @@
   "module_coverage": 0.8333333333333334,
   "sixth_module_historical_evidence_available": false,
   "pit_selector_status": "OK",
-  "selected_observations": 138,
-  "fundamental_coverage_rate": 0.003942857142857143,
-  "selection_lift_100": 0.26504030942727996,
+  "selected_observations": 150,
+  "fundamental_coverage_rate": 0.004285714285714286,
+  "selection_lift_100": 0.43143875445507407,
   "independent_eras": [
     {
       "era": "2019-2020",
       "selected_observations": 0,
       "candidate_observations": 12000,
       "selected_hit_100_rate": null,
-      "candidate_hit_100_rate": 0.438,
+      "candidate_hit_100_rate": 0.43783333333333335,
       "selection_lift_100": null
     },
     {
       "era": "2021-2022",
-      "selected_observations": 2,
+      "selected_observations": 0,
       "candidate_observations": 12000,
-      "selected_hit_100_rate": 0.5,
+      "selected_hit_100_rate": null,
       "candidate_hit_100_rate": 0.3268333333333333,
-      "selection_lift_100": 1.529831718510964
+      "selection_lift_100": null
     },
     {
       "era": "2023-2024",
-      "selected_observations": 136,
+      "selected_observations": 150,
       "candidate_observations": 11000,
-      "selected_hit_100_rate": 0.08823529411764706,
-      "candidate_hit_100_rate": 0.29654545454545456,
-      "selection_lift_100": 0.29754391026796984
+      "selected_hit_100_rate": 0.15333333333333332,
+      "candidate_hit_100_rate": 0.29663636363636364,
+      "selection_lift_100": 0.5169067320461742
     }
   ],
   "lookahead_clean": true,
