@@ -3,11 +3,11 @@
   "validation_type": "BSE_PIT_fundamental_selection",
   "window": "2019-2024",
   "candidate_observations": 35000,
-  "selected_observations": 150,
-  "fundamental_coverage_rate": 0.004285714285714286,
-  "selected_hit_100_rate": 0.15333333333333332,
-  "candidate_hit_100_rate": 0.3554,
-  "selection_lift_100": 0.43143875445507407,
+  "selected_observations": 63,
+  "fundamental_coverage_rate": 0.0018,
+  "selected_hit_100_rate": 0.2698412698412698,
+  "candidate_hit_100_rate": 0.3554285714285714,
+  "selection_lift_100": 0.759199714183637,
   "independent_era_falsification": [
     {
       "era": "2019-2020",
@@ -22,21 +22,21 @@
       "selected_observations": 0,
       "candidate_observations": 12000,
       "selected_hit_100_rate": null,
-      "candidate_hit_100_rate": 0.3268333333333333,
+      "candidate_hit_100_rate": 0.3269166666666667,
       "selection_lift_100": null
     },
     {
       "era": "2023-2024",
-      "selected_observations": 150,
+      "selected_observations": 63,
       "candidate_observations": 11000,
-      "selected_hit_100_rate": 0.15333333333333332,
+      "selected_hit_100_rate": 0.2698412698412698,
       "candidate_hit_100_rate": 0.29663636363636364,
-      "selection_lift_100": 0.5169067320461742
+      "selection_lift_100": 0.9096702323793957
     }
   ],
   "independent_era_positive_lifts": 0,
   "symbols_considered": 100,
-  "symbols_with_metrics": 59,
+  "symbols_with_metrics": 16,
   "lookahead_checks": {
     "filing_available_at_lte_decision": true,
     "future_revisions_excluded": true,
