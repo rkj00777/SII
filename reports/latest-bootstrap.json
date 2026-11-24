@@ -1,13 +1,13 @@
 {
   "job": "bootstrap",
-  "started_at": "2026-11-21T00:05:31.853898",
-  "finished_at": "2026-11-21T00:05:43.004116",
+  "started_at": "2026-11-24T04:04:51.436189",
+  "finished_at": "2026-11-24T04:05:07.996737",
   "universe": {
-    "nse_main": 2631,
-    "nse_sme": 98,
+    "nse_main": 2643,
+    "nse_sme": 584,
     "bse_status": "DATA_UNAVAILABLE",
-    "eligible": 0,
-    "excluded": 0,
+    "eligible": 582,
+    "excluded": 2,
     "source_status": {
       "MAIN": "OK",
       "SME": "OK"
@@ -15,9 +15,9 @@
   },
   "bse_universe": {
     "status": "OK",
-    "as_of": "2026-11-21T00:05:42.232051",
-    "rows": 2710,
-    "raw_rows": 2710,
+    "as_of": "2026-11-24T04:05:06.667789",
+    "rows": 2739,
+    "raw_rows": 2739,
     "source": "TejHQ BSE market-data fallback",
     "dedup_key": "ISIN",
     "notes": [
@@ -25,24 +25,24 @@
       "BSE scrip code and ISIN are retained for filing joins."
     ]
   },
-  "tejhq_current_year_rows": 599828,
+  "tejhq_current_year_rows": 602820,
   "gate": {
-    "eligible_universe": 0,
+    "eligible_universe": 582,
     "market_rows": 0,
     "financial_rows": 0,
-    "universe_coverage": 0.0,
-    "market_coverage": 0.0,
+    "universe_coverage": 1.0,
+    "market_coverage": 1.0,
     "fundamental_coverage": 0.0,
     "evidence_coverage": 0.0,
     "pit_coverage": 0.0,
-    "market_source_coverage": 0.0,
+    "market_source_coverage": 1.0,
     "cache_market_coverage": 0.0,
     "cache_fundamental_coverage": 0.0,
     "critical_errors": 0,
-    "operational_gate_passed": false,
-    "gate_passed": false,
+    "operational_gate_passed": true,
+    "gate_passed": true,
     "production_alpha_gate": "PENDING_HISTORICAL_PIT_VALIDATION",
-    "reason": "Universe/market source gate not met"
+    "reason": "OPERATIONAL_PASS; awaiting empirical PIT selection validation"
   },
-  "status": "DATA_UNAVAILABLE"
+  "status": "READY_FOR_HISTORICAL_OUTCOME_VALIDATION"
 }
